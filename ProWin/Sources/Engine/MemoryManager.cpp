@@ -1,6 +1,5 @@
 #include "MemoryManager.h"
 #include <unistd.h>
-#include <iostream>
 
 namespace ProWin {
 

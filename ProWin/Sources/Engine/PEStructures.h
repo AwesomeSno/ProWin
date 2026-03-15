@@ -101,6 +101,34 @@ typedef struct _IMAGE_SECTION_HEADER {
     uint32_t Characteristics;
 } IMAGE_SECTION_HEADER;
 
+// Import Directory Structures
+typedef struct _IMAGE_IMPORT_DESCRIPTOR {
+    union {
+        uint32_t Characteristics;
+        uint32_t OriginalFirstThunk;
+    } DUMMYUNIONNAME;
+    uint32_t TimeDateStamp;
+    uint32_t ForwarderChain;
+    uint32_t Name;
+    uint32_t FirstThunk;
+} IMAGE_IMPORT_DESCRIPTOR;
+
+typedef struct _IMAGE_IMPORT_BY_NAME {
+    uint16_t Hint;
+    uint8_t  Name[1];
+} IMAGE_IMPORT_BY_NAME;
+
+#define IMAGE_ORDINAL_FLAG64 0x8000000000000000ULL
+
+// Relocation Structures
+typedef struct _IMAGE_BASE_RELOCATION {
+    uint32_t VirtualAddress;
+    uint32_t SizeOfBlock;
+} IMAGE_BASE_RELOCATION;
+
+#define IMAGE_REL_BASED_ABSOLUTE 0
+#define IMAGE_REL_BASED_DIR64    10
+
 #pragma pack(pop)
 
 #endif /* PEStructures_h */

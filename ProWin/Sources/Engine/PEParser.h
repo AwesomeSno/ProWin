@@ -25,6 +25,10 @@ public:
         uint64_t imageBase;
         uint32_t entryPointRVA;
         uint32_t sizeOfImage;
+        uint32_t importDirectoryRVA;
+        uint32_t importDirectorySize;
+        uint32_t relocationDirectoryRVA;
+        uint32_t relocationDirectorySize;
         std::vector<Section> sections;
     };
 

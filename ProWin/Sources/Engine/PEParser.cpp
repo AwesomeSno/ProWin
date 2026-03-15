@@ -45,6 +45,10 @@ PEParser::PEInfo PEParser::getInfo(const std::string& filePath) {
         info.imageBase = opt64.ImageBase;
         info.entryPointRVA = opt64.AddressOfEntryPoint;
         info.sizeOfImage = opt64.SizeOfImage;
+        info.importDirectoryRVA = opt64.DataDirectory[1].VirtualAddress;
+        info.importDirectorySize = opt64.DataDirectory[1].Size;
+        info.relocationDirectoryRVA = opt64.DataDirectory[5].VirtualAddress;
+        info.relocationDirectorySize = opt64.DataDirectory[5].Size;
         info.isValid = true;
         
         // Parse Sections

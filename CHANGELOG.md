@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2026-03-15
+
+### Added
+- Implementation of PE Base Relocation engine (ASLR support)
+- Support for `IMAGE_REL_BASED_DIR64` relocation types
+- Automatic coordinate patching when binary is loaded at a non-preferred base address
+- Enhanced `PEParser` to extract Relocation Data Directory (DataDirectory[5])
+- Pivoted engine development focus towards Windows Game Execution (DirectX/Metal focus)
+
 ## [0.5.0] - 2026-03-15
 
 ### Added
