@@ -46,6 +46,26 @@ PEParser::PEInfo PEParser::getInfo(const std::string& filePath) {
         info.entryPointRVA = opt64.AddressOfEntryPoint;
         info.sizeOfImage = opt64.SizeOfImage;
         info.isValid = true;
+        
+        // Parse Sections
+        file.seekg(dosHeader.e_lfanew + sizeof(uint32_t) + sizeof(IMAGE_FILE_HEADER) + fileHeader.SizeOfOptionalHeader, std::ios::beg);
+        
+        for (int i = 0; i < fileHeader.NumberOfSections; ++i) {
+            IMAGE_SECTION_HEADER sectionHeader;
+            file.read(reinterpret_cast<char*>(&sectionHeader), sizeof(sectionHeader));
+            
+            Section section;
+            char name[9] = {0};
+            memcpy(name, sectionHeader.Name, 8);
+            section.name = name;
+            section.virtualAddress = sectionHeader.VirtualAddress;
+            section.virtualSize = sectionHeader.Misc.VirtualSize;
+            section.rawDataSize = sectionHeader.SizeOfRawData;
+            section.rawDataPtr = sectionHeader.PointerToRawData;
+            section.characteristics = sectionHeader.Characteristics;
+            
+            info.sections.push_back(section);
+        }
     } else if (optionalHeaderMagic == 0x010B) { // PE32
         info.is64Bit = false;
         // TODO: Implement PE32 (32-bit) parsing

@@ -1,6 +1,9 @@
 #import "PEEngineWrapper.h"
 #include "PEParser.h"
 
+@implementation PESectionWrapper
+@end
+
 @implementation PEInfoWrapper
 @end
 
@@ -15,6 +18,19 @@
     wrapper.imageBase = info.imageBase;
     wrapper.entryPointRVA = info.entryPointRVA;
     wrapper.sizeOfImage = info.sizeOfImage;
+    
+    NSMutableArray<PESectionWrapper *> *sections = [NSMutableArray array];
+    for (const auto& s : info.sections) {
+        PESectionWrapper *sw = [[PESectionWrapper alloc] init];
+        sw.name = [NSString stringWithUTF8String:s.name.c_str()];
+        sw.virtualAddress = s.virtualAddress;
+        sw.virtualSize = s.virtualSize;
+        sw.rawDataSize = s.rawDataSize;
+        sw.rawDataPtr = s.rawDataPtr;
+        sw.characteristics = s.characteristics;
+        [sections addObject:sw];
+    }
+    wrapper.sections = sections;
     
     return wrapper;
 }

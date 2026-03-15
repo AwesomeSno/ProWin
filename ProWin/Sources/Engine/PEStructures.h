@@ -83,6 +83,24 @@ typedef struct _IMAGE_NT_HEADERS64 {
     IMAGE_OPTIONAL_HEADER64 OptionalHeader;
 } IMAGE_NT_HEADERS64;
 
+#define IMAGE_SIZEOF_SHORT_NAME 8
+
+typedef struct _IMAGE_SECTION_HEADER {
+    uint8_t  Name[IMAGE_SIZEOF_SHORT_NAME];
+    union {
+        uint32_t PhysicalAddress;
+        uint32_t VirtualSize;
+    } Misc;
+    uint32_t VirtualAddress;
+    uint32_t SizeOfRawData;
+    uint32_t PointerToRawData;
+    uint32_t PointerToRelocations;
+    uint32_t PointerToLinenumbers;
+    uint16_t NumberOfRelocations;
+    uint16_t NumberOfLinenumbers;
+    uint32_t Characteristics;
+} IMAGE_SECTION_HEADER;
+
 #pragma pack(pop)
 
 #endif /* PEStructures_h */
