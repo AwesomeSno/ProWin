@@ -19,7 +19,8 @@ bool InstructionDispatcher::execute(const Instruction& inst, CPUContext& context
             break;
 
         case Opcode::UNKNOWN:
-            fprintf(stderr, "[ProWin] Interpreter: Unknown opcode at 0x%llx\n", context.rip);
+            printf("[ProWin] Interpreter: Unknown opcode (0x%02X) at 0x%llx\n", *(uint8_t*)context.rip, context.rip);
+            fflush(stdout);
             return false;
 
         default:

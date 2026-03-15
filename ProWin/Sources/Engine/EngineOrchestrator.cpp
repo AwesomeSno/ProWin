@@ -21,6 +21,12 @@ EngineOrchestrator& EngineOrchestrator::getInstance() {
 void EngineOrchestrator::start(uint64_t entryPoint) {
     if (m_isRunning) return;
     
+    // Safety: If there's a finished thread from a previous run, we MUST join it 
+    // before assigning a new thread to m_engineThread, otherwise C++ will crash.
+    if (m_engineThread.joinable()) {
+        m_engineThread.join();
+    }
+    
     printf("[ProWin] C++ Engine: Starting thread at 0x%llx\n", entryPoint);
     fflush(stdout);
     

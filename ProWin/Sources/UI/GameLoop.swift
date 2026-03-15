@@ -52,10 +52,11 @@ public final class GameLoop: ObservableObject {
     }
     
     private func runWindowsCode(entryPoint: UInt64) {
-        DispatchQueue.main.async {
-            print("[ProWin] UI Bridge: Starting Engine via EngineBridge")
-            EngineBridge.sharedInstance().startEngine(entryPoint)
-        }
+        print("[ProWin] UI Bridge: Starting Engine via EngineBridge")
+        EngineBridge.sharedInstance().startEngine(entryPoint)
+        
+        // Wait a bit to ensure the thread has actually started
+        Thread.sleep(forTimeInterval: 0.01)
         
         // Monitor for termination
         while isRunning {

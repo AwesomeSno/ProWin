@@ -73,6 +73,10 @@ bool PEImage::load(const std::string& filePath) {
     m_entryPoint = (uint64_t)((char*)m_mappedBase + info.entryPointRVA);
     m_filePath = filePath;
 
+    printf("[ProWin] PEImage: Mapped entry point 0x%llx. First byte: 0x%02X\n", 
+           m_entryPoint, *(uint8_t*)m_entryPoint);
+    fflush(stdout);
+
     return true;
 }
 
