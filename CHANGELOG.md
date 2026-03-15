@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0] - 2026-03-15
+
+### Added
+- `AudioManager` (Swift/AVFoundation) for native macOS audio playback
+- `AudioBridge` (Objective-C++) for C++ to AVAudioEngine communication
+- XAudio2 stubbing (`xaudio2_9.dll`) for modern Windows game audio
+- DirectSound stubbing (`dsound.dll`) for legacy Windows game audio support
+- Foundation for PCM buffer queuing in the audio pipeline
+
 ## [0.9.0] - 2026-03-15
 
 ### Added

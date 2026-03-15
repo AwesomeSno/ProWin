@@ -49,6 +49,17 @@ uint32_t stub_XInputGetState(uint32_t dwUserIndex, void* pState) {
     return 1167; // ERROR_DEVICE_NOT_CONNECTED
 }
 
+// Audio Stubs
+uint32_t stub_XAudio2Create(void** ppXAudio2, uint32_t Flags, uint32_t XAudio2Processor) {
+    std::cout << "[ProWin] XAudio2: XAudio2Create called" << std::endl;
+    return 0; // S_OK
+}
+
+uint32_t stub_DirectSoundCreate(const void* pcGuidDevice, void** ppDS, void* pUnkOuter) {
+    std::cout << "[ProWin] DirectSound: DirectSoundCreate called" << std::endl;
+    return 0; // DS_OK
+}
+
 void initDefaultStubs() {
     StubManager& sm = StubManager::getInstance();
     sm.registerStub("kernel32.dll", "ExitProcess", (StubManager::StubFunction)stub_ExitProcess);
@@ -60,6 +71,10 @@ void initDefaultStubs() {
     
     // Input
     sm.registerStub("xinput1_4.dll", "XInputGetState", (StubManager::StubFunction)stub_XInputGetState);
+
+    // Audio
+    sm.registerStub("xaudio2_9.dll", "XAudio2Create", (StubManager::StubFunction)stub_XAudio2Create);
+    sm.registerStub("dsound.dll", "DirectSoundCreate", (StubManager::StubFunction)stub_DirectSoundCreate);
 }
 
 }
