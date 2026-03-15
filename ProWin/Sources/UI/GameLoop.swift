@@ -9,7 +9,7 @@ public final class GameLoop: ObservableObject {
     @Published public var isRunning: Bool = false
     @Published public var framesProcessed: UInt64 = 0
     
-    private var displayLink: CADisplayLink?
+    private var timer: Timer?
     private var engineThread: Thread?
     
     private init() {}
@@ -18,8 +18,8 @@ public final class GameLoop: ObservableObject {
         guard !isRunning else { return }
         isRunning = true
         
-        // 1. Setup Display Link for sync with screen refresh
-        setupDisplayLink()
+        // 1. Setup Timer for sync with screen refresh (approx 60 FPS)
+        setupTimer()
         
         // 2. Start Windows Execution on a background thread
         engineThread = Thread { [weak self] in
@@ -32,14 +32,14 @@ public final class GameLoop: ObservableObject {
     
     public func stop() {
         isRunning = false
-        displayLink?.invalidate()
-        displayLink = nil
-        // Thread termination would be more complex in a real scenario
+        timer?.invalidate()
+        timer = nil
     }
     
-    private func setupDisplayLink() {
-        displayLink = CADisplayLink(target: self, selector: #selector(onDisplayUpdate))
-        displayLink?.add(to: .main, forMode: .common)
+    private func setupTimer() {
+        timer = Timer.scheduledTimer(withTimeInterval: 1.0/60.0, repeats: true) { [weak self] _ in
+            self?.onDisplayUpdate()
+        }
     }
     
     @objc private func onDisplayUpdate() {
