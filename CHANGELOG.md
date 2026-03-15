@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2026-03-15
+
+### Added
+- `GraphicsManager` (Swift/Metal) for native rendering foundation
+- `MetalViewRepresentable` and `GameContentView` for displaying game output
+- `GraphicsBridge` (Objective-C++) for C++ to Metal communication
+- Initial DirectX (DXGI) and GDI stubs in `StubManager`
+- Support for frame presentation logic entry points
+
 ## [0.7.0] - 2026-03-15
 
 ### Added

@@ -33,9 +33,23 @@ void stub_GetModuleHandleA() {
     std::cout << "[ProWin] GetModuleHandleA called!" << std::endl;
 }
 
+// Graphics Stubs
+void stub_GDI_GetDC() {
+    std::cout << "[ProWin] GDI: GetDC called" << std::endl;
+}
+
+void stub_DXGI_CreateFactory() {
+    std::cout << "[ProWin] DXGI: CreateDXGIFactory called" << std::endl;
+}
+
 void initDefaultStubs() {
-    StubManager::getInstance().registerStub("kernel32.dll", "ExitProcess", (StubManager::StubFunction)stub_ExitProcess);
-    StubManager::getInstance().registerStub("kernel32.dll", "GetModuleHandleA", (StubManager::StubFunction)stub_GetModuleHandleA);
+    StubManager& sm = StubManager::getInstance();
+    sm.registerStub("kernel32.dll", "ExitProcess", (StubManager::StubFunction)stub_ExitProcess);
+    sm.registerStub("kernel32.dll", "GetModuleHandleA", (StubManager::StubFunction)stub_GetModuleHandleA);
+    
+    // Graphics
+    sm.registerStub("user32.dll", "GetDC", (StubManager::StubFunction)stub_GDI_GetDC);
+    sm.registerStub("dxgi.dll", "CreateDXGIFactory", (StubManager::StubFunction)stub_DXGI_CreateFactory);
 }
 
 }
