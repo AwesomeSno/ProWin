@@ -8,29 +8,40 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var statusMessage = "ProWin v0.13.0 Ready"
+    @ObservedObject private var gameLoop = GameLoop.shared
+    @State private var statusMessage = "ProWin v0.14.0 Ready"
     
     var body: some View {
         VStack(spacing: 20) {
             Image(systemName: "cpu")
                 .imageScale(.large)
                 .foregroundStyle(.tint)
-            Text(statusMessage)
+            
+            Text(gameLoop.isRunning ? "Executing..." : statusMessage)
                 .font(.headline)
             
             Button("Run Smoke Test") {
                 runSmokeTest()
             }
             .buttonStyle(.borderedProminent)
-            .disabled(GameLoop.shared.isRunning)
+            .disabled(gameLoop.isRunning)
             
-            if GameLoop.shared.isRunning {
+            if gameLoop.isRunning {
                 ProgressView("Executing test.exe...")
                     .padding()
+            } else if statusMessage == "Executing..." {
+                Text("Execution Finished")
+                    .foregroundColor(.green)
+                    .font(.subheadline)
             }
         }
         .padding()
         .frame(minWidth: 300, minHeight: 250)
+        .onChange(of: gameLoop.isRunning) { running in
+            if !running && statusMessage == "Executing..." {
+                statusMessage = "Execution Finished"
+            }
+        }
     }
     
     private func runSmokeTest() {
