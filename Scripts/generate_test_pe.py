@@ -83,8 +83,9 @@ def generate_minimal_pe(filename):
         f.write(text_section)
         f.write(data_section)
         f.write(b'\x00' * (0x400 - f.tell())) # Padding to raw data
-        f.write(b'\x90' * 0x200) # .text raw data (NOPs)
+        f.write(b'\x90\x90\x90\xC3') # .text raw data start (Distinctive)
+        f.write(b'\x90' * (0x200 - 4)) # Pad rest of .text
         f.write(b'\x00' * 0x200) # .data raw data
 
 if __name__ == '__main__':
-    generate_minimal_pe('test.exe')
+    generate_minimal_pe('/Users/harinandanjv/Documents/ProWIn/test.exe')

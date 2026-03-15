@@ -37,7 +37,10 @@ bool PEImage::load(const std::string& filePath) {
 
     // 1. Map Headers (typically first page/512 bytes)
     size_t pageSize = getpagesize();
-    MemoryManager::commit(m_mappedBase, pageSize, PROT_READ | PROT_WRITE);
+    if (!MemoryManager::commit(m_mappedBase, pageSize, PROT_READ | PROT_WRITE)) {
+        printf("[ProWin] PEImage ERROR: Failed to commit header memory\n");
+        return false;
+    }
     
     char* headerBuf = new char[pageSize];
     file.read(headerBuf, pageSize);
@@ -49,17 +52,26 @@ bool PEImage::load(const std::string& filePath) {
         if (section.rawDataSize == 0) continue;
 
         void* sectionAddr = (char*)m_mappedBase + section.virtualAddress;
-        size_t commitSize = (section.virtualSize + pageSize - 1) & ~(pageSize - 1);
-        
-        MemoryManager::commit(sectionAddr, commitSize, PROT_READ | PROT_WRITE);
+        if (!MemoryManager::commit(sectionAddr, section.virtualSize, PROT_READ | PROT_WRITE)) {
+            printf("[ProWin] PEImage ERROR: Failed to commit section %s\n", section.name.c_str());
+            return false;
+        }
         
         file.seekg(section.rawDataPtr, std::ios::beg);
         file.read((char*)sectionAddr, section.rawDataSize);
         
+        if (file.fail()) {
+            printf("[ProWin] PEImage ERROR: Failed to read section data for %s\n", section.name.c_str());
+            return false;
+        }
+
         // Zero-fill remaining virtual size if any
         if (section.virtualSize > section.rawDataSize) {
             memset((char*)sectionAddr + section.rawDataSize, 0, section.virtualSize - section.rawDataSize);
         }
+        
+        printf("[ProWin] PEImage: Mapped section %s to 0x%p (size: 0x%x)\n", 
+               section.name.c_str(), sectionAddr, (unsigned int)section.rawDataSize);
     }
 
     // 3. Apply Relocations if delta != 0 (ASLR)
@@ -68,12 +80,14 @@ bool PEImage::load(const std::string& filePath) {
     }
 
     // 4. Set Final Protections
-    MemoryManager::protect(m_mappedBase, m_imageSize, PROT_READ | PROT_EXEC);
+    // On Apple Silicon, we use READ|WRITE|EXEC for simplicity because 16KB pages 
+    // often contain both code and data/headers.
+    MemoryManager::commit(m_mappedBase, m_imageSize, PROT_READ | PROT_WRITE | PROT_EXEC);
 
     m_entryPoint = (uint64_t)((char*)m_mappedBase + info.entryPointRVA);
     m_filePath = filePath;
 
-    printf("[ProWin] PEImage: Mapped entry point 0x%llx. First byte: 0x%02X\n", 
+    printf("[ProWin] PEImage: Load complete. EntryPoint: 0x%llx. Byte at entry: 0x%02X\n", 
            m_entryPoint, *(uint8_t*)m_entryPoint);
     fflush(stdout);
 

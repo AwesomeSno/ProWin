@@ -20,9 +20,16 @@ void* MemoryManager::reserve(uint64_t preferredAddress, size_t size) {
 }
 
 bool MemoryManager::commit(void* address, size_t size, int prot) {
-    // On macOS/POSIX, mmap already "commits" the virtual address range.
-    // However, we can use mprotect to set the desired permissions.
-    return mprotect(address, size, prot) == 0;
+    size_t pageSize = getpagesize();
+    uintptr_t start = (uintptr_t)address;
+    uintptr_t alignedStart = start & ~(pageSize - 1);
+    size_t alignedSize = (start + size - alignedStart + pageSize - 1) & ~(pageSize - 1);
+    
+    if (mprotect((void*)alignedStart, alignedSize, prot) != 0) {
+        perror("[ProWin] MemoryManager: mprotect failed");
+        return false;
+    }
+    return true;
 }
 
 bool MemoryManager::protect(void* address, size_t size, int prot) {
