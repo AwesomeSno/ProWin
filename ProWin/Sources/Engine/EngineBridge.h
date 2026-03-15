@@ -9,6 +9,7 @@
 - (void)startEngine:(uint64_t)entryPoint;
 - (void)stopEngine;
 - (BOOL)isEngineRunning;
+- (uint64_t)getRegisterRAX;
 
 @end
 

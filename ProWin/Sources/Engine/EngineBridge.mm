@@ -26,4 +26,8 @@
     return ProWin::EngineOrchestrator::getInstance().isRunning();
 }
 
+- (uint64_t)getRegisterRAX {
+    return ProWin::EngineOrchestrator::getInstance().getContext().rax;
+}
+
 @end

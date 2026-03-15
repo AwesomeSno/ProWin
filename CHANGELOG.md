@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.15.0] - 2026-03-15
+
+### Added
+- **COMPUTE SUPPORT**: Implemented `MOV` and `ADD` instruction decoding and execution.
+- **CPU STATE TRACKING**: Added a live "Register State" view to the UI to monitor emulation progress.
+- **REX/ModRM Support**: Foundation for complex x64 addressing modes.
+- Enhanced `CPUContext` with indexed GPR access.
+
 ## [0.14.1] - 2026-03-15
 
 ### Fixed

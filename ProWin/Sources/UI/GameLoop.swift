@@ -8,6 +8,7 @@ public final class GameLoop: ObservableObject {
     
     @Published public var isRunning: Bool = false
     @Published public var framesProcessed: UInt64 = 0
+    @Published public var rax: UInt64 = 0
     
     private var timer: Timer?
     private var engineThread: Thread?
@@ -47,6 +48,9 @@ public final class GameLoop: ObservableObject {
         
         // Update Graphics
         GraphicsManager.shared.presentFrame()
+        
+        // Sync Register State for UI
+        self.rax = EngineBridge.sharedInstance().getRegisterRAX()
         
         framesProcessed += 1
     }

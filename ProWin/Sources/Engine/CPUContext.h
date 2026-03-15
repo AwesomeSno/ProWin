@@ -43,6 +43,27 @@ struct CPUContext {
             xmm[i].high = 0;
         }
     }
+    uint64_t* getGPR(uint8_t index) {
+        switch (index) {
+            case 0: return &rax;
+            case 1: return &rcx;
+            case 2: return &rdx;
+            case 3: return &rbx;
+            case 4: return &rsp;
+            case 5: return &rbp;
+            case 6: return &rsi;
+            case 7: return &rdi;
+            case 8: return &r8;
+            case 9: return &r9;
+            case 10: return &r10;
+            case 11: return &r11;
+            case 12: return &r12;
+            case 13: return &r13;
+            case 14: return &r14;
+            case 15: return &r15;
+            default: return nullptr;
+        }
+    }
 };
 
 }

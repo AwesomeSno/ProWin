@@ -29,6 +29,17 @@ struct ContentView: View {
             if gameLoop.isRunning {
                 ProgressView("Executing test.exe...")
                     .padding()
+                
+                VStack(alignment: .leading) {
+                    Text("Register State")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                    Text("RAX: 0x\(String(format: "%016llX", gameLoop.rax))")
+                        .font(.system(.body, design: .monospaced))
+                }
+                .padding()
+                .background(Color.black.opacity(0.1))
+                .cornerRadius(8)
             } else if statusMessage == "Executing..." {
                 Text("Execution Finished")
                     .foregroundColor(.green)

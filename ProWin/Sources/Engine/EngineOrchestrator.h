@@ -15,6 +15,7 @@ public:
     void start(uint64_t entryPoint);
     void stop();
     bool isRunning() const { return m_isRunning; }
+    CPUContext& getContext() { return m_context; }
 
 private:
     EngineOrchestrator();

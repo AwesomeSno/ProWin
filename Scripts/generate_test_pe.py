@@ -83,8 +83,15 @@ def generate_minimal_pe(filename):
         f.write(text_section)
         f.write(data_section)
         f.write(b'\x00' * (0x400 - f.tell())) # Padding to raw data
-        f.write(b'\x90\x90\x90\xC3') # .text raw data start (Distinctive)
-        f.write(b'\x90' * (0x200 - 4)) # Pad rest of .text
+        # MOV RAX, 0x1122334455667788
+        f.write(b'\x48\xB8\x88\x77\x66\x55\x44\x33\x22\x11') 
+        # MOV RCX, 0x0000000000000012
+        f.write(b'\x48\xB9\x12\x00\x00\x00\x00\x00\x00\x00')
+        # ADD RAX, RCX
+        f.write(b'\x48\x01\xC8')
+        # RET
+        f.write(b'\xC3')
+        f.write(b'\x90' * (0x200 - (10 + 10 + 3 + 1))) # Pad rest of .text
         f.write(b'\x00' * 0x200) # .data raw data
 
 if __name__ == '__main__':
