@@ -1,7 +1,9 @@
 #include "EngineOrchestrator.h"
 #include "InstructionDecoder.h"
 #include "InstructionDispatcher.h"
-#include <iostream>
+#include <cstdio>
+#include <chrono>
+#include <thread>
 
 namespace ProWin {
 
@@ -19,6 +21,9 @@ EngineOrchestrator& EngineOrchestrator::getInstance() {
 void EngineOrchestrator::start(uint64_t entryPoint) {
     if (m_isRunning) return;
     
+    printf("[ProWin] C++ Engine: Starting thread at 0x%llx\n", entryPoint);
+    fflush(stdout);
+    
     m_isRunning = true;
     m_engineThread = std::thread(&EngineOrchestrator::engineLoop, this, entryPoint);
 }
@@ -33,7 +38,8 @@ void EngineOrchestrator::stop() {
 }
 
 void EngineOrchestrator::engineLoop(uint64_t entryPoint) {
-    std::cout << "[ProWin] C++ Engine: Thread started at " << std::hex << entryPoint << std::endl;
+    printf("[ProWin] C++ Engine: Thread entered at 0x%llx\n", entryPoint);
+    fflush(stdout);
     
     setupInitialState(entryPoint);
     
@@ -47,23 +53,23 @@ void EngineOrchestrator::engineLoop(uint64_t entryPoint) {
         
         // 3. Dispatch (Execute)
         if (!InstructionDispatcher::execute(inst, m_context)) {
-            std::cout << "[ProWin] Engine: Graceful termination requested." << std::endl;
+            printf("[ProWin] Engine: Graceful termination requested.\n");
+            fflush(stdout);
             m_isRunning = false;
             break;
         }
-
-        // Throttle for simulation/debugging if needed
-        // std::this_thread::sleep_for(std::chrono::microseconds(10));
     }
     
-    std::cout << "[ProWin] C++ Engine: Thread terminated" << std::endl;
+    printf("[ProWin] C++ Engine: Thread terminated\n");
+    fflush(stdout);
 }
 
 void EngineOrchestrator::setupInitialState(uint64_t entryPoint) {
     m_context.rip = entryPoint;
     // Simulate a basic stack allocation
     m_context.rsp = 0x7FFFFFFF0000; // Common high memory stack address simulation
-    std::cout << "[ProWin] C++ Engine: Initialized RIP to " << std::hex << m_context.rip << std::endl;
+    printf("[ProWin] C++ Engine: Initialized RIP to 0x%llx\n", m_context.rip);
+    fflush(stdout);
 }
 
 }

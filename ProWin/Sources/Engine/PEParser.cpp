@@ -1,16 +1,20 @@
 #include "PEParser.h"
 #include <fstream>
-#include <iostream>
+#include <cstdio>
+#include <cstring>
 
 namespace ProWin {
 
 PEParser::PEInfo PEParser::getInfo(const std::string& filePath) {
     PEInfo info = {false, false, 0, 0, 0};
     
-    std::cout << "[ProWin] PEParser: Attempting to open " << filePath << std::endl;
+    printf("[ProWin] PEParser: Attempting to open %s\n", filePath.c_str());
+    fflush(stdout);
+    
     std::ifstream file(filePath, std::ios::binary);
     if (!file.is_open()) {
-        std::cerr << "[ProWin] PEParser: Failed to open file (Permissions/Sandbox?)" << std::endl;
+        printf("[ProWin] PEParser: Failed to open file (Permissions/Sandbox?)\n");
+        fflush(stdout);
         return info;
     }
     
@@ -18,7 +22,8 @@ PEParser::PEInfo PEParser::getInfo(const std::string& filePath) {
     file.read(reinterpret_cast<char*>(&dosHeader), sizeof(dosHeader));
     
     if (dosHeader.e_magic != 0x5A4D) { // 'MZ'
-        std::cerr << "[ProWin] PEParser: Invalid DOS Magic: 0x" << std::hex << dosHeader.e_magic << std::endl;
+        printf("[ProWin] PEParser: Invalid DOS Magic: 0x%x\n", dosHeader.e_magic);
+        fflush(stdout);
         return info;
     }
     

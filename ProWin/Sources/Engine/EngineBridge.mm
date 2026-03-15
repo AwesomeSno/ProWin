@@ -13,6 +13,8 @@
 }
 
 - (void)startEngine:(uint64_t)entryPoint {
+    printf("[ProWin] EngineBridge: startEngine called with 0x%llx\n", entryPoint);
+    fflush(stdout);
     ProWin::EngineOrchestrator::getInstance().start(entryPoint);
 }
 
