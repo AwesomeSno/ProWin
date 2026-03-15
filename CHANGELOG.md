@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.14.0] - 2026-03-15
+
+### Added
+- **SUCCESSFUL SMOKE TEST**: The engine can now load, map, and emulate x64 instructions from a PE file.
+- Instruction support for `NOP` and `RET`.
+
+### Fixed
+- Fixed "Permission Denied" memory error by removing unnecessary `PROT_EXEC` from the interpreter memory range.
+
 ## [0.13.9] - 2026-03-15
 
 ### Fixed

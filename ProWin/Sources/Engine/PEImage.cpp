@@ -89,9 +89,9 @@ bool PEImage::load(const std::string& filePath) {
     }
 
     // 4. Set Final Protections
-    // On Apple Silicon, we use READ|WRITE|EXEC for simplicity because 16KB pages 
-    // often contain both code and data/headers.
-    MemoryManager::commit(m_mappedBase, m_imageSize, PROT_READ | PROT_WRITE | PROT_EXEC);
+    // For the Interpreter, we only need READ access to emulate.
+    // We avoid PROT_EXEC here to bypass macOS security restrictions on RWX memory.
+    MemoryManager::commit(m_mappedBase, m_imageSize, PROT_READ | PROT_WRITE);
 
     m_entryPoint = (uint64_t)((char*)m_mappedBase + info.entryPointRVA);
     m_filePath = filePath;
