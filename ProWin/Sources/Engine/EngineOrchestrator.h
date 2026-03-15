@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <atomic>
 #include <thread>
+#include "CPUContext.h"
 
 namespace ProWin {
 
@@ -20,9 +21,11 @@ private:
     ~EngineOrchestrator();
 
     void engineLoop(uint64_t entryPoint);
+    void setupInitialState(uint64_t entryPoint);
 
     std::atomic<bool> m_isRunning;
     std::thread m_engineThread;
+    CPUContext m_context;
 };
 
 }

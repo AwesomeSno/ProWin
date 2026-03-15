@@ -34,6 +34,8 @@ void EngineOrchestrator::stop() {
 void EngineOrchestrator::engineLoop(uint64_t entryPoint) {
     std::cout << "[ProWin] C++ Engine: Thread started at " << std::hex << entryPoint << std::endl;
     
+    setupInitialState(entryPoint);
+    
     // This is where the emulator loop would live
     while (m_isRunning) {
         // Simulate execution cycles
@@ -41,6 +43,13 @@ void EngineOrchestrator::engineLoop(uint64_t entryPoint) {
     }
     
     std::cout << "[ProWin] C++ Engine: Thread terminated" << std::endl;
+}
+
+void EngineOrchestrator::setupInitialState(uint64_t entryPoint) {
+    m_context.rip = entryPoint;
+    // Simulate a basic stack allocation
+    m_context.rsp = 0x7FFFFFFF0000; // Common high memory stack address simulation
+    std::cout << "[ProWin] C++ Engine: Initialized RIP to " << std::hex << m_context.rip << std::endl;
 }
 
 }
