@@ -24,8 +24,21 @@ public final class PELoader {
     /// - Parameter url: The URL of the .exe or .dll file.
     /// - Returns: A loaded PEBinary instance.
     public func load(from url: URL) throws -> PEBinary {
-        // TODO: Implement PE loading logic
-        fatalError("Not yet implemented")
+        let wrapper = PEEngineWrapper()
+        guard let info = wrapper.getPEInfo(url.path) else {
+            throw LoaderError.fileNotFound
+        }
+        
+        guard info.isValid else {
+            throw LoaderError.invalidPEHeader
+        }
+        
+        return PEBinary(
+            name: url.lastPathComponent,
+            baseAddress: info.imageBase,
+            entryPoint: info.imageBase + UInt64(info.entryPointRVA),
+            is64Bit: info.is64Bit
+        )
     }
     
     /// Resolves the Import Address Table for the given binary.
