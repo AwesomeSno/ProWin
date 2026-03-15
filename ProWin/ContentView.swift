@@ -34,11 +34,16 @@ struct ContentView: View {
     }
     
     private func runSmokeTest() {
-        let fileManager = FileManager.default
-        let currentPath = fileManager.currentDirectoryPath
-        let testExeURL = URL(fileURLWithPath: currentPath).appendingPathComponent("test.exe")
+        // Use absolute path for development/smoke test on this machine
+        let testExePath = "/Users/harinandanjv/Documents/ProWIn/test.exe"
+        let testExeURL = URL(fileURLWithPath: testExePath)
         
         statusMessage = "Loading test.exe..."
+        
+        if !FileManager.default.fileExists(atPath: testExePath) {
+            statusMessage = "File not found at: \(testExePath)"
+            return
+        }
         
         do {
             let loader = PELoader()

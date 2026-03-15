@@ -2,7 +2,6 @@
 #include "InstructionDecoder.h"
 #include "InstructionDispatcher.h"
 #include <iostream>
-#include <chrono>
 
 namespace ProWin {
 
