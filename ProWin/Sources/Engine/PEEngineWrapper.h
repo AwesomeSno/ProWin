@@ -20,4 +20,5 @@
 
 @interface PEEngineWrapper : NSObject
 - (PEInfoWrapper *)getPEInfo:(NSString *)filePath;
+- (uint64_t)loadImage:(NSString *)filePath;
 @end

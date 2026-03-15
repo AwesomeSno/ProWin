@@ -63,4 +63,17 @@ public final class PELoader {
         // TODO: Implement IAT resolution
         fatalError("Not yet implemented")
     }
+    /// Maps the PE binary into the process memory.
+    /// - Parameter url: The URL of the .exe or .dll file.
+    /// - Returns: The virtual memory address of the entry point.
+    public func executeLoad(from url: URL) throws -> UInt64 {
+        let wrapper = PEEngineWrapper()
+        let entryPoint = wrapper.loadImage(url.path)
+        
+        guard entryPoint != 0 else {
+            throw LoaderError.relocationFailed
+        }
+        
+        return entryPoint
+    }
 }

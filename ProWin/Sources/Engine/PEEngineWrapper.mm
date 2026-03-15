@@ -1,5 +1,6 @@
 #import "PEEngineWrapper.h"
 #include "PEParser.h"
+#include "PEImage.h"
 
 @implementation PESectionWrapper
 @end
@@ -33,6 +34,15 @@
     wrapper.sections = sections;
     
     return wrapper;
+}
+
+- (uint64_t)loadImage:(NSString *)filePath {
+    auto image = new ProWin::PEImage();
+    if (image->load([filePath UTF8String])) {
+        return image->getEntryPoint();
+    }
+    delete image;
+    return 0;
 }
 
 @end
