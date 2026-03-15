@@ -1,4 +1,6 @@
 #include "EngineOrchestrator.h"
+#include "InstructionDecoder.h"
+#include "InstructionDispatcher.h"
 #include <iostream>
 #include <chrono>
 
@@ -36,10 +38,23 @@ void EngineOrchestrator::engineLoop(uint64_t entryPoint) {
     
     setupInitialState(entryPoint);
     
-    // This is where the emulator loop would live
+    // Interpreter Loop
     while (m_isRunning) {
-        // Simulate execution cycles
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        // 1. Fetch
+        uint8_t* currentPC = (uint8_t*)m_context.rip;
+        
+        // 2. Decode
+        Instruction inst = InstructionDecoder::decode(currentPC);
+        
+        // 3. Dispatch (Execute)
+        if (!InstructionDispatcher::execute(inst, m_context)) {
+            std::cout << "[ProWin] Engine: Graceful termination requested." << std::endl;
+            m_isRunning = false;
+            break;
+        }
+
+        // Throttle for simulation/debugging if needed
+        // std::this_thread::sleep_for(std::chrono::microseconds(10));
     }
     
     std::cout << "[ProWin] C++ Engine: Thread terminated" << std::endl;

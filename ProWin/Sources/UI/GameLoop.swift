@@ -51,18 +51,21 @@ public final class GameLoop: ObservableObject {
     }
     
     private func runWindowsCode(entryPoint: UInt64) {
-        print("[ProWin] Engine: Starting Windows execution at 0x\(String(entryPoint, radix: 16))")
-        
-        // In a real implementation, this is where we would:
-        // 1. Setup registers (RIP = entryPoint)
-        // 2. Setup stack
-        // 3. Jump to code
-        
-        // For now, we simulate a running engine
-        while isRunning {
-            Thread.sleep(forTimeInterval: 0.001) // Simulate work
+        DispatchQueue.main.async {
+            print("[ProWin] UI Bridge: Starting Engine via EngineBridge")
+            EngineBridge.sharedInstance().startEngine(entryPoint)
         }
         
-        print("[ProWin] Engine: Windows execution stopped")
+        // Monitor for termination
+        while isRunning {
+            if !EngineBridge.sharedInstance().isEngineRunning() {
+                print("[ProWin] UI Bridge: Engine reported termination")
+                DispatchQueue.main.async {
+                    self.stop()
+                }
+                break
+            }
+            Thread.sleep(forTimeInterval: 0.1)
+        }
     }
 }
