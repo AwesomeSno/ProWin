@@ -42,10 +42,19 @@ bool PEImage::load(const std::string& filePath) {
         return false;
     }
     
-    char* headerBuf = new char[pageSize];
-    file.read(headerBuf, pageSize);
-    memcpy(m_mappedBase, headerBuf, pageSize);
+    // Safety: Only read what exists in the file (file is likely < 16KB pageSize)
+    file.seekg(0, std::ios::end);
+    size_t fileSize = file.tellg();
+    file.seekg(0, std::ios::beg);
+
+    size_t readSize = (fileSize < pageSize) ? fileSize : pageSize;
+    char* headerBuf = new char[readSize];
+    file.read(headerBuf, readSize);
+    memcpy(m_mappedBase, headerBuf, readSize);
     delete[] headerBuf;
+    
+    // Clear any fail/eof bits if we hit end of file while reading header
+    file.clear();
 
     // 2. Map Sections
     for (const auto& section : info.sections) {

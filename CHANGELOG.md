@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.13.9] - 2026-03-15
+
+### Fixed
+- Fixed "Failed to read section data" error by clearing C++ file stream state after reading headers.
+- Implemented file-size-aware header reading to prevent EOF errors on files smaller than the 16KB system page size.
+
 ## [0.13.8] - 2026-03-15
 
 ### Fixed
