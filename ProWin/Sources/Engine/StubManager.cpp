@@ -42,6 +42,13 @@ void stub_DXGI_CreateFactory() {
     std::cout << "[ProWin] DXGI: CreateDXGIFactory called" << std::endl;
 }
 
+// Input Stubs
+uint32_t stub_XInputGetState(uint32_t dwUserIndex, void* pState) {
+    // Return ERROR_SUCCESS (0) if controller is supposedly connected
+    if (dwUserIndex == 0) return 0;
+    return 1167; // ERROR_DEVICE_NOT_CONNECTED
+}
+
 void initDefaultStubs() {
     StubManager& sm = StubManager::getInstance();
     sm.registerStub("kernel32.dll", "ExitProcess", (StubManager::StubFunction)stub_ExitProcess);
@@ -50,6 +57,9 @@ void initDefaultStubs() {
     // Graphics
     sm.registerStub("user32.dll", "GetDC", (StubManager::StubFunction)stub_GDI_GetDC);
     sm.registerStub("dxgi.dll", "CreateDXGIFactory", (StubManager::StubFunction)stub_DXGI_CreateFactory);
+    
+    // Input
+    sm.registerStub("xinput1_4.dll", "XInputGetState", (StubManager::StubFunction)stub_XInputGetState);
 }
 
 }
