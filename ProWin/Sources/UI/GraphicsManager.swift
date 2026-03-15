@@ -1,6 +1,7 @@
 import Metal
 import MetalKit
 import SwiftUI
+import Combine
 
 /// GraphicsManager handles the macOS Metal graphics subsystem.
 /// It provides the bridge between Windows DirectX/GDI calls and native Metal rendering.

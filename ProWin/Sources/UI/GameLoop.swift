@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import QuartzCore
 
 /// GameLoop coordinates the execution of the Windows binary with macOS UI/Graphics updates.
 public final class GameLoop: ObservableObject {

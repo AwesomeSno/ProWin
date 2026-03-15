@@ -1,5 +1,6 @@
 import GameController
 import Foundation
+import Combine
 
 /// InputManager handles macOS game controllers and bridges them to Windows XInput.
 public final class InputManager: NSObject, ObservableObject {
