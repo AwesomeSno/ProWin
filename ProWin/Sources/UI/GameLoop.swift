@@ -13,7 +13,7 @@ public final class GameLoop: ObservableObject {
     
     private var entryPoint: UInt64 = 0
     
-    private var timer: Timer?
+    private var displayLink: CADisplayLink?
     private var engineThread: Thread?
     
     private init() {}
@@ -32,7 +32,7 @@ public final class GameLoop: ObservableObject {
             DispatchQueue.main.async {
                 self.isLoaded = true
                 self.isRunning = true
-                self.setupTimer()
+                self.setupDisplayLink()
                 
                 // 3. Start Windows Execution on a background thread
                 self.engineThread = Thread { [weak self] in
@@ -51,14 +51,13 @@ public final class GameLoop: ObservableObject {
     
     public func stop() {
         isRunning = false
-        timer?.invalidate()
-        timer = nil
+        displayLink?.invalidate()
+        displayLink = nil
     }
     
-    private func setupTimer() {
-        timer = Timer.scheduledTimer(withTimeInterval: 1.0/60.0, repeats: true) { [weak self] _ in
-            self?.onDisplayUpdate()
-        }
+    private func setupDisplayLink() {
+        displayLink = CADisplayLink(target: self, selector: #selector(onDisplayUpdate))
+        displayLink?.add(to: .main, forMode: .common)
     }
     
     @objc private func onDisplayUpdate() {
@@ -66,6 +65,18 @@ public final class GameLoop: ObservableObject {
         
         // Update Graphics
         GraphicsManager.shared.presentFrame()
+        
+        // Update Input (Bridge native controller state to Engine)
+        if let state = InputManager.shared.getControllerState(index: 0) {
+            EngineBridge.sharedInstance().updateInputState(
+                0, 
+                buttons: state.buttons, 
+                leftStickX: state.leftStickX, 
+                leftStickY: state.leftStickY, 
+                rightStickX: state.rightStickX, 
+                rightStickY: state.rightStickY
+            )
+        }
         
         // Sync Register State for UI
         self.rax = EngineBridge.sharedInstance().getRegisterRAX()

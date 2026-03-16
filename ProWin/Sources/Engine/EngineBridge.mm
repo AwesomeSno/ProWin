@@ -1,6 +1,7 @@
 #import "EngineBridge.h"
 #include "EngineOrchestrator.h"
 #include "DisplayManager.h"
+#include "InputState.h"
 
 @implementation EngineBridge
 
@@ -54,6 +55,29 @@
 
 - (int)getDisplayHeight {
     return ProWin::DisplayManager::getInstance().getHeight();
+}
+
+- (void)updateInputState:(uint32_t)playerIndex
+                 buttons:(uint16_t)buttons
+            leftStickX:(int16_t)lx
+            leftStickY:(int16_t)ly
+           rightStickX:(int16_t)rx
+           rightStickY:(int16_t)ry {
+    ProWin::WinXInputState state;
+    state.buttons = buttons;
+    state.leftStickX = lx;
+    state.leftStickY = ly;
+    state.rightStickX = rx;
+    state.rightStickY = ry;
+    state.packetNumber++; // Basic increment for now
+    ProWin::InputStateManager::getInstance().updateState(playerIndex, state);
+}
+
+- (void)playSound:(uint64_t)bufferPtr size:(uint32_t)size {
+    // In a real implementation, we'd pass this to AudioManager.shared.
+    // For now, let's just log that we reached the bridge.
+    printf("[EngineBridge] Audio data received: 0x%llx (size: %u)\n", bufferPtr, size);
+    // TODO: Connect to AudioManager.shared in a future update or via delegate.
 }
 
 @end

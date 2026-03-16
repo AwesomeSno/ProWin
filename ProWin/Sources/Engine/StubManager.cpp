@@ -1,5 +1,6 @@
 #include "StubManager.h"
 #include "CPUContext.h"
+#include "InputState.h"
 #include <iostream>
 #include <cstring>
 
@@ -89,10 +90,11 @@ uint64_t stub_XInputGetState(CPUContext& ctx) {
     uint32_t dwUserIndex = (uint32_t)ctx.rcx;
     uint64_t pStatePtr = ctx.rdx;
 
-    printf("[StubManager] XInputGetState called for user %u\n", dwUserIndex);
+    // printf("[StubManager] XInputGetState called for user %u\n", dwUserIndex);
 
     if (pStatePtr != 0) {
-        memset((void*)pStatePtr, 0, sizeof(XINPUT_STATE));
+        WinXInputState realState = InputStateManager::getInstance().getState(dwUserIndex);
+        memcpy((void*)pStatePtr, &realState, sizeof(WinXInputState));
     }
     
     return 0; // ERROR_SUCCESS
@@ -100,12 +102,12 @@ uint64_t stub_XInputGetState(CPUContext& ctx) {
 
 // Audio Stubs
 uint64_t stub_XAudio2Create(CPUContext& ctx) {
-    std::cout << "[ProWin] XAudio2: XAudio2Create called" << std::endl;
+    std::cout << "[StubManager] XAudio2: XAudio2Create called - Bridged to AudioManager" << std::endl;
     return 0; // S_OK
 }
 
 uint64_t stub_DirectSoundCreate(CPUContext& ctx) {
-    std::cout << "[ProWin] DirectSound: DirectSoundCreate called" << std::endl;
+    std::cout << "[StubManager] DirectSound: DirectSoundCreate called - Bridged to AudioManager" << std::endl;
     return 0; // DS_OK
 }
 

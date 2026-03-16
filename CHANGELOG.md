@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.20.0] - 2026-03-17
+
+### Added
+- **Frame-Accurate UI**: Replaced `Timer` with `CADisplayLink` for smoother 60fps rendering.
+- **Hardware Bridge**: Established connection between native macOS Input/Audio and Windows stubs.
+- **XInput Engine**: Real controller state is now propagated from `GCController` to `XInputGetState`.
+- **Audio Hook**: Added groundwork for `XAudio2` and `DirectSound` telemetry to native `AudioManager`.
+
+### Fixed
+- **Stub Stability**: Fixed missing include in `StubManager.cpp` causing build failures.
+
 ## [0.19.0] - 2026-03-17
 
 ### Added
