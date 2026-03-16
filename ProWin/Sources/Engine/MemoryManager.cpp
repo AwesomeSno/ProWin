@@ -3,17 +3,19 @@
 
 namespace ProWin {
 
-void* MemoryManager::reserve(uint64_t preferredAddress, size_t size) {
+void* MemoryManager::reserve(uint64_t preferredAddress, size_t size, bool shared) {
     // Round size to page size
     size_t pageSize = getpagesize();
     size = (size + pageSize - 1) & ~(pageSize - 1);
     
+    int flags = (shared ? MAP_SHARED : MAP_PRIVATE) | MAP_ANON;
+    
     // Attempt to map at the preferred address first
-    void* addr = mmap((void*)preferredAddress, size, PROT_NONE, MAP_PRIVATE | MAP_ANON, -1, 0);
+    void* addr = mmap((void*)preferredAddress, size, PROT_NONE, flags, -1, 0);
     
     if (addr == MAP_FAILED) {
         // Fallback: let the OS choose any available space
-        addr = mmap(NULL, size, PROT_NONE, MAP_PRIVATE | MAP_ANON, -1, 0);
+        addr = mmap(NULL, size, PROT_NONE, flags, -1, 0);
     }
     
     return addr == MAP_FAILED ? nullptr : addr;

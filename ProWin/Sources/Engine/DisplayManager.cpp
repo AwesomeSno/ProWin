@@ -25,8 +25,9 @@ void DisplayManager::initialize(int width, int height) {
     m_height = height;
     size_t size = getVRAMSize();
 
-    // Let the OS pick a safe address for virtual VRAM
-    m_vram = MemoryManager::reserve(0, size);
+    // Let the OS pick a safe address for virtual VRAM. 
+    // MUST use MAP_SHARED for Metal bytesNoCopy compatibility.
+    m_vram = MemoryManager::reserve(0, size, true);
     
     if (m_vram) {
         if (!MemoryManager::commit(m_vram, size, PROT_READ | PROT_WRITE)) {

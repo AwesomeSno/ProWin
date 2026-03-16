@@ -2,6 +2,7 @@
 #define EngineBridge_h
 
 #import <Foundation/Foundation.h>
+#import <Metal/Metal.h>
 
 @interface EngineBridge : NSObject
 
@@ -14,6 +15,9 @@
 - (NSString *)getErrorState;
 - (uint64_t)getRegisterRAX;
 - (void*)getVRAMPointer;
+- (uint64_t)getVRAMSize;
+- (id<MTLBuffer>)getVRAMBufferWithDevice:(id<MTLDevice>)device;
+- (BOOL)isVRAMValid;
 - (int)getDisplayWidth;
 - (int)getDisplayHeight;
 

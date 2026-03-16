@@ -49,6 +49,26 @@
     return ProWin::DisplayManager::getInstance().getVRAM();
 }
 
+- (uint64_t)getVRAMSize {
+    return ProWin::DisplayManager::getInstance().getVRAMSize();
+}
+
+- (id<MTLBuffer>)getVRAMBufferWithDevice:(id<MTLDevice>)device {
+    void* ptr = [self getVRAMPointer];
+    uint64_t size = [self getVRAMSize];
+    if (!ptr || size == 0) return nil;
+    
+    return [device newBufferWithBytesNoCopy:ptr
+                                     length:size
+                                    options:MTLResourceStorageModeShared
+                                deallocator:nil];
+}
+
+- (BOOL)isVRAMValid {
+    // Basic check: is engine running AND is there a valid pointer?
+    return [self isEngineRunning] && ([self getVRAMPointer] != nil);
+}
+
 - (int)getDisplayWidth {
     return ProWin::DisplayManager::getInstance().getWidth();
 }

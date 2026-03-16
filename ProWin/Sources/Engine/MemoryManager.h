@@ -15,7 +15,7 @@ public:
         uint32_t protection; // PROT_READ, etc.
     };
 
-    static void* reserve(uint64_t preferredAddress, size_t size);
+    static void* reserve(uint64_t preferredAddress, size_t size, bool shared = false);
     static bool commit(void* address, size_t size, int prot);
     static bool protect(void* address, size_t size, int prot);
     static void release(void* address, size_t size);

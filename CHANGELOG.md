@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.22.0] - 2026-03-17
+
+### Added
+- **Secure VRAM Architecture**: Transitioned VRAM allocation to `MAP_SHARED` for safe zero-copy access from Metal.
+- **Metal Buffer Bridge**: Implemented `MTLBuffer` backing for VRAM, eliminating the risks of raw pointer dereferencing in the host UI.
+- **Memory Safety Guards**: Added `isVRAMValid` checks to prevent graphics rendering if the guest engine is in an inconsistent state.
+
+### Changed
+- Refactored `GraphicsManager.swift` to use `BlitCommandEncoder` for VRAM-to-Texture transfers.
+
 ## [0.21.0] - 2026-03-17
 
 ### Added
