@@ -2,6 +2,7 @@
 #include "InstructionDecoder.h"
 #include "InstructionDispatcher.h"
 #include "DisplayManager.h"
+#include "EngineConstants.h"
 #include <cstdio>
 #include <chrono>
 #include <thread>
@@ -25,7 +26,7 @@ bool EngineOrchestrator::start(uint64_t entryPoint) {
     
     m_errorState.clear();
     try {
-        DisplayManager::getInstance().initialize(800, 600);
+        DisplayManager::getInstance().initialize(PROWIN_VRAM_WIDTH, PROWIN_VRAM_HEIGHT);
     } catch (const std::exception& e) {
         printf("[ProWin] EngineOrchestrator: Initialization failed: %s\n", e.what());
         m_errorState = e.what();

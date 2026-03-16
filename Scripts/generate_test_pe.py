@@ -1,6 +1,35 @@
 import struct
+import re
+import pathlib
+
+# Parse constants from EngineConstants.h
+constants = {}
+header_path = pathlib.Path("ProWin/Sources/Engine/EngineConstants.h")
+if not header_path.exists():
+    # Fallback for when script is run from project root or similar
+    header_path = pathlib.Path(__file__).parent.parent / "ProWin/Sources/Engine/EngineConstants.h"
+
+try:
+    header_content = header_path.read_text()
+    for m in re.finditer(r'#define (PROWIN_\w+)\s+(\d+)', header_content):
+        constants[m.group(1)] = int(m.group(2))
+except Exception as e:
+    print(f"Warning: Could not parse EngineConstants.h: {e}")
+    # Default values as fallback
+    constants = {
+        "PROWIN_VRAM_WIDTH": 800,
+        "PROWIN_VRAM_HEIGHT": 600,
+        "PROWIN_VRAM_BPP": 4
+    }
+
+VRAM_WIDTH = constants["PROWIN_VRAM_WIDTH"]
+VRAM_HEIGHT = constants["PROWIN_VRAM_HEIGHT"]
+VRAM_BPP = constants["PROWIN_VRAM_BPP"]
+
+assert VRAM_WIDTH > 0, "Failed to parse PROWIN_VRAM_WIDTH from EngineConstants.h"
 
 def generate_minimal_pe(filename):
+    # ... (header generation remains same)
     # DOS Header
     mz_header = struct.pack('<2s', b'MZ') + b'\x00' * 58 + struct.pack('<I', 0x40)
     
@@ -17,7 +46,6 @@ def generate_minimal_pe(filename):
     )
     
     # Optional Header (PE32+)
-    # Standard fields (24 bytes)
     std_fields = struct.pack('<HBBIIIII',
         0x020B,  # Magic: PE32+
         0, 0,    # Major/MinorLinker
@@ -28,7 +56,6 @@ def generate_minimal_pe(filename):
         0x1000,  # BaseOfCode
     )
     
-    # Windows fields (88 bytes) - corrected format for 21 items
     win_fields = struct.pack('<QIIHHHHHHIIIIHHQQQQII',
         0x00400000, # ImageBase
         0x1000,  # SectionAlignment
@@ -48,11 +75,8 @@ def generate_minimal_pe(filename):
         16       # NumberOfRvaAndSizes
     )
     
-    # Data Directories (Empty)
     data_dirs = b'\x00' * (16 * 8)
     
-    # Section Headers
-    # .text
     text_section = struct.pack('<8sIIIIIIHHI',
         b'.text\x00\x00\x00',
         0x1000, # VirtualSize
@@ -62,7 +86,6 @@ def generate_minimal_pe(filename):
         0, 0, 0, 0,
         0x60000020 # Characteristics: CODE | EXECUTE | READ
     )
-    # .data
     data_section = struct.pack('<8sIIIIIIHHI',
         b'.data\x00\x00\x00',
         0x1000, # VirtualSize
@@ -84,40 +107,37 @@ def generate_minimal_pe(filename):
         f.write(data_section)
         f.write(b'\x00' * (0x400 - f.tell())) # Padding to raw data
         
-        # x64 Assembly to fill a 100x100 blue square
+        # x64 Assembly to fill a 100x100 pattern square
         # RDI is pre-loaded with VRAM Address by the engine
-        # MOV EAX, 0xFFFF0000 (Blue in BGRA)
-        # MOV RCX, 100 (height)
-        # OuterLoop:
-        #   MOV RDX, 100 (width)
-        #   InnerLoop:
-        #     STOSD (Store EAX at [RDI], then RDI += 4)
-        #Dec RDX
-        #     JNZ InnerLoop
-        #   ADD RDI, (800-100)*4 (Skip to next line)
-        #   DEC RCX
-        #   JNZ OuterLoop
-        # RET
         
-        # Binary machine code:
+        square_size = 100
+        skip_bytes = (VRAM_WIDTH - square_size) * VRAM_BPP
+
         code = b''
-        code += b'\xB8\xFF\x00\x00\xFF'                   # MOV EAX, 0xFF0000FF (Blue)
-        code += b'\x48\xC7\xC1\x64\x00\x00\x00'           # MOV RCX, 100 (Outer count)
+        code += b'\xB8\xFF\x00\xFF\x00'                    # MOV EAX, 0x00FF00FF
+        code += b'\x48\xC7\xC1' + struct.pack('<I', square_size) # MOV RCX, 100
         
-        # Outer loop start (offset 0x0C)
-        code += b'\x48\xC7\xC2\x64\x00\x00\x00'           # MOV RDX, 100 (Inner count)
+        # Outer loop start
+        code += b'\x48\xC7\xC2' + struct.pack('<I', square_size) # MOV RDX, 100
         
-        # Inner loop start (offset 0x13 = 19)
-        code += b'\xAB'                                   # STOSD (offset 19)
-        code += b'\x48\xFF\xCA'                           # DEC RDX (offset 20)
-        code += b'\x75\xFA'                               # JNZ Inner (offset 23, jump -6 to 19)
+        # Inner loop start
+        code += b'\xAB'                                   # STOSD
+        code += b'\x48\xFF\xCA'                           # DEC RDX
+        code += b'\x75\xFA'                               # JNZ Inner (-6)
         
         # Outer loop logic
-        code += b'\x48\x81\xC7\xF0\x0A\x00\x00'           # ADD RDI, 2800 (offset 25)
-        code += b'\x48\xFF\xC9'                           # DEC RCX (offset 32)
-        code += b'\x75\xE7'                               # JNZ Outer (offset 35, jump -25 to 12)
+        code += b'\x48\x81\xC7' + struct.pack('<I', skip_bytes) # ADD RDI, skip_bytes
+        code += b'\x48\xFF\xC9'                           # DEC RCX
+        code += b'\x75\xE7'                               # JNZ Outer (-25 approx, depends on skip_bytes encoding size)
         
-        code += b'\xC3'                                   # RET (offset 37)
+        # Re-calculating jumps precisely
+        # Inner loop jump is fixed at -6
+        # Outer loop jump:
+        # Start of Outer: offset 10 (after MOV EAX and MOV RCX)
+        # End of Outer (before jump): offset 10 + 7 (MOV RDX) + 1 (STOSD) + 3 (DEC RDX) + 2 (JNZ Inner) + 7 (ADD RDI) + 3 (DEC RCX) = offset 33
+        # Jump from offset 35 to offset 10: 10 - 35 = -25. Which is 0xE7 in int8.
+        
+        code += b'\xC3'                                   # RET
         
         f.write(code)
         f.write(b'\x90' * (0x200 - len(code)))

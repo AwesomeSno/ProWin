@@ -3,10 +3,11 @@
 #include <cstdio>
 #include <stdexcept>
 #include <cerrno>
+#include "EngineConstants.h"
 
 namespace ProWin {
 
-DisplayManager::DisplayManager() : m_width(800), m_height(600), m_vram(nullptr) {
+DisplayManager::DisplayManager() : m_width(PROWIN_VRAM_WIDTH), m_height(PROWIN_VRAM_HEIGHT), m_vram(nullptr) {
 }
 
 DisplayManager::~DisplayManager() {

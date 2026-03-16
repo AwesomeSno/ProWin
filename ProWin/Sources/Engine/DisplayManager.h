@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <vector>
+#include "EngineConstants.h"
 
 namespace ProWin {
 
@@ -12,7 +13,7 @@ public:
 
     void initialize(int width, int height);
     void* getVRAM() { return m_vram; }
-    size_t getVRAMSize() { return m_width * m_height * 4; }
+    size_t getVRAMSize() { return (size_t)m_width * m_height * PROWIN_VRAM_BPP; }
     
     int getWidth() const { return m_width; }
     int getHeight() const { return m_height; }

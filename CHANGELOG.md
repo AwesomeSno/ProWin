@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.23.0] - 2026-03-17
+
+### Added
+- **Centralized Constants**: Created `EngineConstants.h` as a single source of truth for VRAM dimensions and bit depth.
+- **Script Sync**: Updated `generate_test_pe.py` to automatically parse C++ headers, ensuring the test binary always matches the engine's expected resolution.
+
+### Fixed
+- Eliminated silent rendering bugs caused by mismatched resolution between the engine and the test generator.
+
 ## [0.22.0] - 2026-03-17
 
 ### Added
