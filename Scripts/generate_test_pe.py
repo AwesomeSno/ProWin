@@ -83,15 +83,44 @@ def generate_minimal_pe(filename):
         f.write(text_section)
         f.write(data_section)
         f.write(b'\x00' * (0x400 - f.tell())) # Padding to raw data
-        # MOV RAX, 0x1122334455667788
-        f.write(b'\x48\xB8\x88\x77\x66\x55\x44\x33\x22\x11') 
-        # MOV RCX, 0x0000000000000012
-        f.write(b'\x48\xB9\x12\x00\x00\x00\x00\x00\x00\x00')
-        # ADD RAX, RCX
-        f.write(b'\x48\x01\xC8')
+        
+        # x64 Assembly to fill a 100x100 blue square
+        # RDI is pre-loaded with VRAM Address by the engine
+        # MOV EAX, 0xFFFF0000 (Blue in BGRA)
+        # MOV RCX, 100 (height)
+        # OuterLoop:
+        #   MOV RDX, 100 (width)
+        #   InnerLoop:
+        #     STOSD (Store EAX at [RDI], then RDI += 4)
+        #Dec RDX
+        #     JNZ InnerLoop
+        #   ADD RDI, (800-100)*4 (Skip to next line)
+        #   DEC RCX
+        #   JNZ OuterLoop
         # RET
-        f.write(b'\xC3')
-        f.write(b'\x90' * (0x200 - (10 + 10 + 3 + 1))) # Pad rest of .text
+        
+        # Binary machine code:
+        code = b''
+        code += b'\xB8\xFF\x00\x00\xFF'                   # MOV EAX, 0xFF0000FF (Blue)
+        code += b'\x48\xC7\xC1\x64\x00\x00\x00'           # MOV RCX, 100 (Outer count)
+        
+        # Outer loop start (offset 0x0C)
+        code += b'\x48\xC7\xC2\x64\x00\x00\x00'           # MOV RDX, 100 (Inner count)
+        
+        # Inner loop start (offset 0x13 = 19)
+        code += b'\xAB'                                   # STOSD (offset 19)
+        code += b'\x48\xFF\xCA'                           # DEC RDX (offset 20)
+        code += b'\x75\xFA'                               # JNZ Inner (offset 23, jump -6 to 19)
+        
+        # Outer loop logic
+        code += b'\x48\x81\xC7\xF0\x0A\x00\x00'           # ADD RDI, 2800 (offset 25)
+        code += b'\x48\xFF\xC9'                           # DEC RCX (offset 32)
+        code += b'\x75\xE7'                               # JNZ Outer (offset 35, jump -25 to 12)
+        
+        code += b'\xC3'                                   # RET (offset 37)
+        
+        f.write(code)
+        f.write(b'\x90' * (0x200 - len(code)))
         f.write(b'\x00' * 0x200) # .data raw data
 
 if __name__ == '__main__':

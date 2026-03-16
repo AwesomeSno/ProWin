@@ -39,16 +39,56 @@ Instruction InstructionDecoder::decode(const uint8_t* code) {
             inst.opcode = Opcode::MOV;
             inst.reg1 = opcode - 0xB8;
             if (is64Bit) {
-                // MOV RAX, imm64 (1 byte opcode + 8 bytes imm)
+                // MOV Rxx, imm64
                 inst.imm = *(uint64_t*)(code + pos + 1);
                 inst.hasImm = true;
                 inst.length = pos + 9;
             } else {
-                // MOV EAX, imm32 (1 byte opcode + 4 bytes imm)
+                // MOV Exx, imm32
                 inst.imm = *(uint32_t*)(code + pos + 1);
                 inst.hasImm = true;
                 inst.length = pos + 5;
             }
+            break;
+
+        case 0xC7: // MOV r/m, imm32
+            if (code[pos + 1] >= 0xC0) { // Reg only
+                inst.opcode = Opcode::MOV;
+                inst.reg1 = code[pos + 1] & 0x07;
+                inst.imm = *(uint32_t*)(code + pos + 2);
+                inst.hasImm = true;
+                inst.length = pos + 6;
+            }
+            break;
+
+        case 0x81: // Group 1 (ADD, ADC, AND, etc.)
+            if ((code[pos + 1] & 0x38) == 0x00) { // ADD
+                inst.opcode = Opcode::ADD;
+                inst.reg1 = code[pos + 1] & 0x07;
+                inst.imm = *(uint32_t*)(code + pos + 2);
+                inst.hasImm = true;
+                inst.length = pos + 6;
+            }
+            break;
+
+        case 0xFF: // Group 4/5 (DEC, INC, etc.)
+            if ((code[pos + 1] & 0x38) == 0x08) { // DEC
+                inst.opcode = Opcode::DEC;
+                inst.reg1 = code[pos + 1] & 0x07;
+                inst.length = pos + 2;
+            }
+            break;
+
+        case 0xAB: // STOSD
+            inst.opcode = Opcode::STOSD;
+            inst.length = pos + 1;
+            break;
+
+        case 0x75: // JNZ rel8
+            inst.opcode = Opcode::JNZ;
+            inst.disp = (int8_t)code[pos + 1];
+            inst.hasDisp = true;
+            inst.length = pos + 2;
             break;
 
         case 0x01: // ADD reg/mem, reg

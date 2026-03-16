@@ -1,5 +1,6 @@
 #import "EngineBridge.h"
 #include "EngineOrchestrator.h"
+#include "DisplayManager.h"
 
 @implementation EngineBridge
 
@@ -28,6 +29,18 @@
 
 - (uint64_t)getRegisterRAX {
     return ProWin::EngineOrchestrator::getInstance().getContext().rax;
+}
+
+- (void*)getVRAMPointer {
+    return ProWin::DisplayManager::getInstance().getVRAM();
+}
+
+- (int)getDisplayWidth {
+    return ProWin::DisplayManager::getInstance().getWidth();
+}
+
+- (int)getDisplayHeight {
+    return ProWin::DisplayManager::getInstance().getHeight();
 }
 
 @end

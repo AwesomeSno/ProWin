@@ -20,7 +20,10 @@ enum class Opcode {
     CMP,
     LEA,
     SYSCALL,
-    NOP
+    NOP,
+    STOSD,
+    DEC,
+    JNZ
 };
 
 struct Instruction {

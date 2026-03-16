@@ -1,13 +1,16 @@
 #include "EngineOrchestrator.h"
 #include "InstructionDecoder.h"
 #include "InstructionDispatcher.h"
+#include "DisplayManager.h"
 #include <cstdio>
 #include <chrono>
 #include <thread>
 
 namespace ProWin {
 
-EngineOrchestrator::EngineOrchestrator() : m_isRunning(false) {}
+EngineOrchestrator::EngineOrchestrator() : m_isRunning(false) {
+    DisplayManager::getInstance().initialize(800, 600);
+}
 
 EngineOrchestrator::~EngineOrchestrator() {
     stop();
@@ -73,8 +76,13 @@ void EngineOrchestrator::engineLoop(uint64_t entryPoint) {
 void EngineOrchestrator::setupInitialState(uint64_t entryPoint) {
     m_context.rip = entryPoint;
     // Simulate a basic stack allocation
-    m_context.rsp = 0x7FFFFFFF0000; // Common high memory stack address simulation
-    printf("[ProWin] C++ Engine: Initialized RIP to 0x%llx\n", m_context.rip);
+    m_context.rsp = 0x7FFFFFFF0000;
+    
+    // Pass VRAM pointer to RDI so the test binary knows where to write
+    m_context.rdi = (uint64_t)DisplayManager::getInstance().getVRAM();
+    
+    printf("[ProWin] C++ Engine: Initialized RIP to 0x%llx, RDI to 0x%llx\n", 
+           m_context.rip, m_context.rdi);
     fflush(stdout);
 }
 

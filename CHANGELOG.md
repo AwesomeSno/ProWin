@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.16.0] - 2026-03-15
+
+### Added
+- **GRAPHICS BRIDGE**: Implemented virtual VRAM (framebuffer) that emulated x64 code can write to directly.
+- **Metal Rendering**: Added a blitting system to copy virtual VRAM pixels to a macOS Metal window.
+- **Loop Support**: Added `DEC`, `JNZ`, and `STOSD` instruction support to the interpreter.
+- Optimized `DisplayManager` for Apple Silicon 16KB memory pages.
+
 ## [0.15.0] - 2026-03-15
 
 ### Added
