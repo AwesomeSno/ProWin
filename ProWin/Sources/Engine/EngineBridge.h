@@ -10,6 +10,9 @@
 - (void)stopEngine;
 - (BOOL)isEngineRunning;
 - (uint64_t)getRegisterRAX;
+- (void*)getVRAMPointer;
+- (int)getDisplayWidth;
+- (int)getDisplayHeight;
 
 @end
 
