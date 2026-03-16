@@ -27,19 +27,38 @@ struct ContentView: View {
             .disabled(gameLoop.isRunning)
             
             if gameLoop.isRunning {
-                ProgressView("Executing test.exe...")
+                ProgressView(gameLoop.isPaused ? "Paused" : "Executing test.exe...")
                     .padding()
                 
-                VStack(alignment: .leading) {
+                VStack(alignment: .leading, spacing: 4) {
                     Text("Register State")
                         .font(.caption)
                         .foregroundColor(.gray)
                     Text("RAX: 0x\(String(format: "%016llX", gameLoop.rax))")
-                        .font(.system(.body, design: .monospaced))
+                    Text("RIP: 0x\(String(format: "%016llX", gameLoop.rip))")
+                    Text("FLG: 0x\(String(format: "%08X", gameLoop.rflags))")
                 }
+                .font(.system(.body, design: .monospaced))
                 .padding()
                 .background(Color.black.opacity(0.1))
                 .cornerRadius(8)
+
+                HStack {
+                    Button(gameLoop.isPaused ? "Resume" : "Pause") {
+                        if gameLoop.isPaused {
+                            EngineBridge.sharedInstance()?.resumeEngine()
+                        } else {
+                            EngineBridge.sharedInstance()?.pauseEngine()
+                        }
+                    }
+                    .buttonStyle(.bordered)
+                    
+                    Button("Stop") {
+                        gameLoop.stop()
+                    }
+                    .buttonStyle(.bordered)
+                    .foregroundColor(.red)
+                }
             } else if statusMessage == "Executing..." {
                 Text("Execution Finished")
                     .foregroundColor(.green)

@@ -9,7 +9,8 @@
 
 namespace ProWin {
 
-EngineOrchestrator::EngineOrchestrator() : m_isRunning(false), m_isLoaded(false) {
+EngineOrchestrator::EngineOrchestrator() : m_isRunning(false), m_isPaused(false), m_isLoaded(false) {
+    m_snapshot = {0, 0, 0, false, false};
 }
 
 EngineOrchestrator::~EngineOrchestrator() {
@@ -30,6 +31,7 @@ bool EngineOrchestrator::start(uint64_t entryPoint) {
     } catch (const std::exception& e) {
         printf("[ProWin] EngineOrchestrator: Initialization failed: %s\n", e.what());
         m_errorState = e.what();
+        if (m_eventCallback) m_eventCallback("error:" + std::string(e.what()));
         return false;
     }
     
@@ -43,6 +45,7 @@ bool EngineOrchestrator::start(uint64_t entryPoint) {
     fflush(stdout);
     
     m_isRunning = true;
+    if (m_eventCallback) m_eventCallback("start");
     m_engineThread = std::thread(&EngineOrchestrator::engineLoop, this, entryPoint);
     return true;
 }
@@ -64,6 +67,13 @@ void EngineOrchestrator::engineLoop(uint64_t entryPoint) {
     
     // Interpreter Loop
     while (m_isRunning) {
+        // Handle Pause
+        if (m_isPaused) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            updateSnapshot();
+            continue;
+        }
+
         // 1. Fetch
         uint8_t* currentPC = (uint8_t*)m_context.rip;
         
@@ -75,12 +85,15 @@ void EngineOrchestrator::engineLoop(uint64_t entryPoint) {
             printf("[ProWin] Engine: Graceful termination requested.\n");
             fflush(stdout);
             m_isRunning = false;
-            break;
+            if (m_eventCallback) m_eventCallback("halt");
         }
+
+        updateSnapshot();
     }
     
     printf("[ProWin] C++ Engine: Thread terminated\n");
     fflush(stdout);
+    if (m_eventCallback) m_eventCallback("finish");
 }
 
 void EngineOrchestrator::setupInitialState(uint64_t entryPoint) {
@@ -97,6 +110,21 @@ void EngineOrchestrator::setupInitialState(uint64_t entryPoint) {
     printf("[ProWin] C++ Engine: Initialized RIP to 0x%llx, RDI to 0x%llx\n", 
            m_context.rip, m_context.rdi);
     fflush(stdout);
+    updateSnapshot();
+}
+
+EngineSnapshot EngineOrchestrator::getSnapshot() {
+    std::lock_guard<std::mutex> lock(m_snapshotMutex);
+    return m_snapshot;
+}
+
+void EngineOrchestrator::updateSnapshot() {
+    std::lock_guard<std::mutex> lock(m_snapshotMutex);
+    m_snapshot.rax = m_context.rax;
+    m_snapshot.rip = m_context.rip;
+    m_snapshot.rflags = m_context.rflags;
+    m_snapshot.isRunning = m_isRunning;
+    m_snapshot.isPaused = m_isPaused;
 }
 
 }

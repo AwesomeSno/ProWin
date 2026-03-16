@@ -15,9 +15,19 @@
 }
 
 - (BOOL)startEngine:(uint64_t)entryPoint {
-    printf("[ProWin] EngineBridge: startEngine called with 0x%llx\n", entryPoint);
-    fflush(stdout);
-    return ProWin::EngineOrchestrator::getInstance().start(entryPoint);
+    auto& engine = ProWin::EngineOrchestrator::getInstance();
+    
+    // Set up Swift-compatible callback
+    engine.setEventCallback([self](const std::string& event) {
+        if (self.onEngineEvent) {
+            NSString *nsEvent = [NSString stringWithUTF8String:event.c_str()];
+            dispatch_async(dispatch_get_main_queue(), ^{
+                self.onEngineEvent(nsEvent);
+            });
+        }
+    });
+
+    return engine.start(entryPoint);
 }
 
 - (NSString *)getErrorState {
@@ -43,6 +53,29 @@
 
 - (uint64_t)getRegisterRAX {
     return ProWin::EngineOrchestrator::getInstance().getContext().rax;
+}
+
+- (EngineSnapshotStruct)getSnapshot {
+    ProWin::EngineSnapshot cppSnapshot = ProWin::EngineOrchestrator::getInstance().getSnapshot();
+    EngineSnapshotStruct snapshot;
+    snapshot.rax = cppSnapshot.rax;
+    snapshot.rip = cppSnapshot.rip;
+    snapshot.rflags = cppSnapshot.rflags;
+    snapshot.isRunning = cppSnapshot.isRunning;
+    snapshot.isPaused = cppSnapshot.isPaused;
+    return snapshot;
+}
+
+- (void)pauseEngine {
+    ProWin::EngineOrchestrator::getInstance().pause();
+}
+
+- (void)resumeEngine {
+    ProWin::EngineOrchestrator::getInstance().resume();
+}
+
+- (BOOL)isPaused {
+    return ProWin::EngineOrchestrator::getInstance().isPaused();
 }
 
 - (void*)getVRAMPointer {

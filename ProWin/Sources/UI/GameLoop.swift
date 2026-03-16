@@ -8,10 +8,13 @@ public final class GameLoop: ObservableObject {
     public static let shared = GameLoop()
     
     @Published public var rax: UInt64 = 0
+    @Published public var rip: UInt64 = 0
+    @Published public var rflags: UInt32 = 0
     @Published public var errorMessage: String?
     @Published public var showErrorAlert: Bool = false
     @Published public var isLoaded: Bool = false
     @Published public var isRunning: Bool = false
+    @Published public var isPaused: Bool = false
     
     private var entryPoint: UInt64 = 0
     private var framesProcessed: UInt64 = 0
@@ -30,7 +33,22 @@ public final class GameLoop: ObservableObject {
             self.entryPoint = result.absoluteEntryPoint
             
             // 2. Set Entry Point in Engine
-            EngineBridge.sharedInstance()?.setEntryPoint(self.entryPoint)
+            let bridge = EngineBridge.sharedInstance()
+            bridge?.setEntryPoint(self.entryPoint)
+            
+            // 3. Setup Listener
+            bridge?.onEngineEvent = { [weak self] event in
+                guard let event = event else { return }
+                print("[ProWin] Engine Event: \(event)")
+                if event == "halt" || event == "finish" {
+                    self?.stop()
+                } else if event.hasPrefix("error:") {
+                    let msg = String(event.dropFirst(6))
+                    self?.errorMessage = msg
+                    self?.showErrorAlert = true
+                    self?.stop()
+                }
+            }
             
             DispatchQueue.main.async {
                 self.isLoaded = true
@@ -93,12 +111,19 @@ public final class GameLoop: ObservableObject {
             )
         }
         
-        // 2. Sync State for UI (must be on main thread for @Published)
-        let currentRAX = EngineBridge.sharedInstance()?.getRegisterRAX() ?? 0
-        DispatchQueue.main.async {
-            self.rax = currentRAX
-            // 3. Present Graphics (Metal presentation MUST be synced to DisplayLink)
-            GraphicsManager.shared.presentFrame()
+        // 2. Sync State for UI (Atomic Snapshot)
+        if let bridge = EngineBridge.sharedInstance() {
+            let snapshot = bridge.getSnapshot()
+            DispatchQueue.main.async {
+                self.rax = snapshot.rax
+                self.rip = snapshot.rip
+                self.rflags = snapshot.rflags
+                self.isRunning = snapshot.isRunning.boolValue
+                self.isPaused = snapshot.isPaused.boolValue
+                
+                // 3. Present Graphics (Metal presentation MUST be synced to DisplayLink)
+                GraphicsManager.shared.presentFrame()
+            }
         }
         
         framesProcessed += 1
