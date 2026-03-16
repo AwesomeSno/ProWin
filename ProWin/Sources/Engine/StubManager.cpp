@@ -23,6 +23,24 @@ void* StubManager::getStub(const std::string& dllName, const std::string& funcNa
     return nullptr;
 }
 
+void null_stub_handler(const std::string& dll, const std::string& func) {
+    printf("[StubManager] FATAL: Call to unimplemented stub %s!%s\n", dll.c_str(), func.c_str());
+    // In a real engine we might throw or halt. For now, just log.
+}
+
+void generic_null_stub() {
+    printf("[StubManager] ERROR: Unimplemented function called!\n");
+}
+
+void* StubManager::getOrCreateStub(const std::string& dllName, const std::string& funcName) {
+    void* stub = getStub(dllName, funcName);
+    if (stub) return stub;
+
+    printf("[StubManager] WARNING: No stub for %s!%s — using null stub\n", dllName.c_str(), funcName.c_str());
+    
+    return (void*)generic_null_stub;
+}
+
 // Example Stubs
 void stub_ExitProcess() {
     std::cout << "[ProWin] ExitProcess called!" << std::endl;

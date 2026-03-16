@@ -15,6 +15,7 @@ public:
 
     void registerStub(const std::string& dllName, const std::string& funcName, StubFunction func);
     void* getStub(const std::string& dllName, const std::string& funcName);
+    void* getOrCreateStub(const std::string& dllName, const std::string& funcName);
 
 private:
     StubManager() {}

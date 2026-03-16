@@ -118,6 +118,15 @@ typedef struct _IMAGE_IMPORT_BY_NAME {
     uint8_t  Name[1];
 } IMAGE_IMPORT_BY_NAME;
 
+typedef struct _IMAGE_THUNK_DATA64 {
+    union {
+        uint64_t ForwarderString;  // PBYTE 
+        uint64_t Function;         // PDWORD
+        uint64_t Ordinal;
+        uint64_t AddressOfData;    // PIMAGE_IMPORT_BY_NAME
+    } u1;
+} IMAGE_THUNK_DATA64;
+
 #define IMAGE_ORDINAL_FLAG64 0x8000000000000000ULL
 
 // Relocation Structures

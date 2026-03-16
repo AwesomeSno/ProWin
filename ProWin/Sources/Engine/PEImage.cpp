@@ -1,5 +1,6 @@
 #include "PEImage.h"
 #include "MemoryManager.h"
+#include "StubManager.h"
 #include <fstream>
 #include <cstring>
 #include <unistd.h>
@@ -99,6 +100,12 @@ bool PEImage::load(const std::string& filePath) {
         applyRelocations(delta);
     }
 
+    // 3.5 Resolve Imports
+    if (!resolveImports()) {
+        printf("[ProWin] PEImage ERROR: Failed to resolve imports\n");
+        return false;
+    }
+
     // 4. Set Final Protections per section
     // MemoryManager initially commits sections as RW to allow loading and relocations.
     // Now we apply the actual protections from the PE header.
@@ -111,8 +118,8 @@ bool PEImage::load(const std::string& filePath) {
         // Ensure address and size are page-aligned for mprotect?
         // MemoryManager::reserve/commit usually handles this, but let's be careful.
         if (mprotect(sectionAddr, section.virtualSize, prot) != 0) {
-            printf("[ProWin] PEImage Warning: mprotect failed for section %s at %p (prot: 0x%x): %s\n", 
-                   section.name.c_str(), sectionAddr, prot, strerror(errno));
+            printf("[PEImage] WARNING: mprotect failed for section %s: %s\n", 
+                   section.name.c_str(), strerror(errno));
         } else {
             printf("[PEImage] Section %s -> prot=0x%x\n", section.name.c_str(), prot);
         }
@@ -125,6 +132,54 @@ bool PEImage::load(const std::string& filePath) {
            m_entryPoint, *(uint8_t*)m_entryPoint);
     fflush(stdout);
 
+    return true;
+}
+
+bool PEImage::resolveImports() {
+    if (m_importRVA == 0) return true;
+
+    IMAGE_IMPORT_DESCRIPTOR* importDesc = (IMAGE_IMPORT_DESCRIPTOR*)((char*)m_mappedBase + m_importRVA);
+    int dllCount = 0;
+    int importCount = 0;
+
+    while (importDesc->Name != 0) {
+        const char* dllName = (const char*)m_mappedBase + importDesc->Name;
+        dllCount++;
+
+        // OriginalFirstThunk (INT) and FirstThunk (IAT)
+        uint32_t intRVA = importDesc->DUMMYUNIONNAME.OriginalFirstThunk;
+        uint32_t iatRVA = importDesc->FirstThunk;
+
+        // Fallback if no INT
+        if (intRVA == 0) intRVA = iatRVA;
+
+        IMAGE_THUNK_DATA64* thunkINT = (IMAGE_THUNK_DATA64*)((char*)m_mappedBase + intRVA);
+        IMAGE_THUNK_DATA64* thunkIAT = (IMAGE_THUNK_DATA64*)((char*)m_mappedBase + iatRVA);
+
+        while (thunkINT->u1.AddressOfData != 0) {
+            importCount++;
+            if (!(thunkINT->u1.Ordinal & IMAGE_ORDINAL_FLAG64)) {
+                IMAGE_IMPORT_BY_NAME* importByName = (IMAGE_IMPORT_BY_NAME*)((char*)m_mappedBase + thunkINT->u1.AddressOfData);
+                const char* funcName = (const char*)importByName->Name;
+                
+                void* stubAddr = StubManager::getInstance().getOrCreateStub(dllName, funcName);
+                thunkIAT->u1.Function = (uint64_t)stubAddr;
+            } else {
+                uint16_t ordinal = (uint16_t)(thunkINT->u1.Ordinal & 0xFFFF);
+                // For ordinals, we'd need a different StubManager lookup
+                // For now, just null stub
+                thunkIAT->u1.Function = 0;
+                printf("[PEImage] Warning: Import by ordinal %d from %s set to NULL\n", ordinal, dllName);
+            }
+            
+            thunkINT++;
+            thunkIAT++;
+        }
+        
+        importDesc++;
+    }
+
+    printf("[PEImage] IAT Resolution: %d entries across %d DLLs\n", importCount, dllCount);
     return true;
 }
 

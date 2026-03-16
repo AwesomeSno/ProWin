@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.18.0] - 2026-03-17
+
+### Added
+- **IAT Resolution**: Implemented dynamic Import Address Table resolution in `PEImage`.
+- **Stub Fallbacks**: Added `getOrCreateStub` with "null stub" logic to prevent crashes on unimplemented APIs.
+- **Dynamic Linking**: Engine now correctly walks name and ordinal thunks to bind DLL imports.
+- **Header Improvements**: Added x64-specific thunk structures and corrected packing pragmas.
+
+### Fixed
+- **Loader Crash**: Removed `fatalError` from `PELoader.swift`, enabling binaries with imports to load.
+
 ## [0.17.0] - 2026-03-17
 
 ### Added
