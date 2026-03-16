@@ -68,16 +68,8 @@ struct ContentView: View {
         }
         
         do {
-            let loader = PELoader()
-            // 1. Initial Load (Metadata)
-            _ = try loader.load(from: testExeURL)
-            
-            // 2. Execute Load (Memory Mapping)
-            let entryPoint = try loader.executeLoad(from: testExeURL)
-            
-            // 3. Start Game Loop
-            GameLoop.shared.start(entryPoint: entryPoint)
-            
+            // Simply delegate to GameLoop which handles loading and execution
+            GameLoop.shared.start(url: testExeURL)
             statusMessage = "Executing..."
         } catch {
             statusMessage = "Test Failed: \(error.localizedDescription)"

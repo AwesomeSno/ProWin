@@ -34,8 +34,9 @@ public final class GraphicsManager: NSObject, ObservableObject {
     }
     
     private func setupVRAMTexture() {
-        let width = EngineBridge.sharedInstance().getDisplayWidth()
-        let height = EngineBridge.sharedInstance().getDisplayHeight()
+        guard let bridge = EngineBridge.sharedInstance() else { return }
+        let width = bridge.getDisplayWidth()
+        let height = bridge.getDisplayHeight()
         
         let descriptor = MTLTextureDescriptor.texture2DDescriptor(pixelFormat: .bgra8Unorm,
                                                                    width: Int(width),
@@ -46,11 +47,11 @@ public final class GraphicsManager: NSObject, ObservableObject {
     }
 
     private func ensureVRAMBuffer() -> MTLBuffer? {
-        guard let device = device else { return nil }
+        guard let device = device, let bridge = EngineBridge.sharedInstance() else { return nil }
         
         // Re-create buffer if invalid or missing
-        if vramBuffer == nil || !EngineBridge.sharedInstance().isVRAMValid() {
-            vramBuffer = EngineBridge.sharedInstance().getVRAMBufferWith(device)
+        if vramBuffer == nil || !bridge.isVRAMValid() {
+            vramBuffer = bridge.getVRAMBuffer(with: device)
             if vramBuffer != nil {
                 print("[ProWin] Graphics: VRAM Buffer established (Shared Memory)")
             }
@@ -60,7 +61,8 @@ public final class GraphicsManager: NSObject, ObservableObject {
     
     /// Called when the Windows game requests a frame presentation.
     public func presentFrame() {
-        guard EngineBridge.sharedInstance().isVRAMValid(),
+        guard let bridge = EngineBridge.sharedInstance(),
+              bridge.isVRAMValid(),
               let device = self.device,
               let texture = vramTexture,
               let buffer = ensureVRAMBuffer(),
@@ -70,8 +72,8 @@ public final class GraphicsManager: NSObject, ObservableObject {
             return
         }
         
-        let width = Int(EngineBridge.sharedInstance().getDisplayWidth())
-        let height = Int(EngineBridge.sharedInstance().getDisplayHeight())
+        let width = Int(bridge.getDisplayWidth())
+        let height = Int(bridge.getDisplayHeight())
         
         // Copy Shared VRAM Buffer to Texture using Blit Encoder
         let blit = commandBuffer.makeBlitCommandEncoder()
@@ -91,10 +93,14 @@ public final class GraphicsManager: NSObject, ObservableObject {
         if let _ = renderPassDescriptor {
              let blitEncoder = commandBuffer.makeBlitCommandEncoder()
              blitEncoder?.copy(from: texture, 
-                               sourcePosition: MTLOrigin(x: 0, y: 0, z: 0), 
+                               sourceSlice: 0, 
+                               sourceLevel: 0, 
+                               sourceOrigin: MTLOrigin(x: 0, y: 0, z: 0), 
                                sourceSize: MTLSize(width: width, height: height, depth: 1), 
                                to: currentDrawable.texture, 
-                               destinationPosition: MTLOrigin(x: 0, y: 0, z: 0))
+                               destinationSlice: 0, 
+                               destinationLevel: 0, 
+                               destinationOrigin: MTLOrigin(x: 0, y: 0, z: 0))
              blitEncoder?.endEncoding()
         }
         

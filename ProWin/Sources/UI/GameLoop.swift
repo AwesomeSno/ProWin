@@ -30,7 +30,7 @@ public final class GameLoop: ObservableObject {
             self.entryPoint = result.absoluteEntryPoint
             
             // 2. Set Entry Point in Engine
-            EngineBridge.sharedInstance().setEntryPoint(self.entryPoint)
+            EngineBridge.sharedInstance()?.setEntryPoint(self.entryPoint)
             
             DispatchQueue.main.async {
                 self.isLoaded = true
@@ -81,8 +81,9 @@ public final class GameLoop: ObservableObject {
         guard isRunning else { return }
         
         // 1. Update Input (Bridge native controller state to Engine)
-        if let state = InputManager.shared.getControllerState(index: 0) {
-            EngineBridge.sharedInstance().updateInputState(
+        if let state = InputManager.shared.getControllerState(index: 0),
+           let bridge = EngineBridge.sharedInstance() {
+            bridge.updateInputState(
                 0, 
                 buttons: state.buttons, 
                 leftStickX: state.leftStickX, 
@@ -93,7 +94,7 @@ public final class GameLoop: ObservableObject {
         }
         
         // 2. Sync State for UI (must be on main thread for @Published)
-        let currentRAX = EngineBridge.sharedInstance().getRegisterRAX()
+        let currentRAX = EngineBridge.sharedInstance()?.getRegisterRAX() ?? 0
         DispatchQueue.main.async {
             self.rax = currentRAX
             // 3. Present Graphics (Metal presentation MUST be synced to DisplayLink)
@@ -104,11 +105,12 @@ public final class GameLoop: ObservableObject {
     }
     
     private func runWindowsCode(entryPoint: UInt64) {
+        guard let bridge = EngineBridge.sharedInstance() else { return }
         print("[ProWin] UI Bridge: Starting Engine via EngineBridge")
-        let success = EngineBridge.sharedInstance().startEngine(entryPoint)
+        let success = bridge.startEngine(entryPoint)
         
         if (!success) {
-            let error = EngineBridge.sharedInstance().getErrorState() ?? "Unknown Engine Error"
+            let error = bridge.getErrorState() ?? "Unknown Engine Error"
             print("[ProWin] UI Bridge: Engine failed to start: \(error)")
             DispatchQueue.main.async {
                 self.errorMessage = error
@@ -123,7 +125,7 @@ public final class GameLoop: ObservableObject {
         
         // Monitor for termination
         while isRunning {
-            if !EngineBridge.sharedInstance().isEngineRunning() {
+            if !bridge.isEngineRunning() {
                 print("[ProWin] UI Bridge: Engine reported termination")
                 DispatchQueue.main.async {
                     self.stop()
