@@ -28,7 +28,8 @@ enum class Opcode {
     JL,
     JGE,
     JLE,
-    JG
+    JG,
+    INC
 };
 
 struct Instruction {

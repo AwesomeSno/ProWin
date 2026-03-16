@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.26.0] - 2026-03-17
+
+### Added
+- **Stack Support**: Implemented core x86-64 stack instructions: `PUSH`, `POP`, `CALL`, and `RET` (including `RET imm16`).
+- **Memory Helpers**: Added `read64` and `write64` to `MemoryManager` for safe guest memory access.
+- **Improved Decoding**: Enhanced `InstructionDecoder` to handle REX-aware register extensions and ModRM field branching for complex opcodes like `FF /6`.
+- **Instruction Support**: Added `INC` opcode support.
+
+## [0.25.0] - 2026-03-17
+
+### Added
+- **Thread-Safe Snapshots**: Implemented an atomic snapshot mechanism for UI/Engine synchronization.
+- **Event Callbacks**: Added a Swift-compatible callback system for engine events (halt, finish, error).
+- **Pause/Resume**: Added support for pausing emulation without stopping the display loop.
+
+## [0.24.1] - 2026-03-17
+
+### Fixed
+- Resolved build failures caused by extraneous braces in `PELoader.swift`.
+- Fixed cascading Swift errors in `GraphicsManager` and `GameLoop`.
+
 ## [0.24.0] - 2026-03-17
 
 ### Added

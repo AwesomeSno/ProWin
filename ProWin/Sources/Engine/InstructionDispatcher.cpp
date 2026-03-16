@@ -1,6 +1,7 @@
 #include "InstructionDispatcher.h"
 #include <cstdio>
 #include "ALU.h"
+#include "MemoryManager.h"
 
 namespace ProWin {
 
@@ -12,10 +13,66 @@ bool InstructionDispatcher::execute(const Instruction& inst, CPUContext& context
             break;
 
         case Opcode::RET:
-            printf("[ProWin] Interpreter: RET at 0x%llx\n", context.rip);
-            // Simplified: Stop execution for now
-            branchTaken = true;
-            return false;
+            {
+                uint64_t retAddr = MemoryManager::read64(context.rsp);
+                context.rsp += 8;
+                if (inst.hasImm) {
+                    context.rsp += inst.imm;
+                }
+                context.rip = retAddr;
+                branchTaken = true;
+                printf("[ProWin] Interpreter: RET to 0x%llx\n", context.rip);
+            }
+            break;
+
+        case Opcode::CALL:
+            {
+                // Push return address (next instruction)
+                uint64_t retAddr = context.rip + inst.length;
+                context.rsp -= 8;
+                MemoryManager::write64(context.rsp, retAddr);
+
+                if (inst.hasImm) {
+                    // CALL rel32: RIP = next_rip + displacement
+                    context.rip = retAddr + (int64_t)(int32_t)inst.imm;
+                } else {
+                    // CALL r/m64
+                    if (uint64_t* src = context.getGPR(inst.reg1)) {
+                        context.rip = *src;
+                    }
+                }
+                branchTaken = true;
+                printf("[ProWin] Interpreter: CALL to 0x%llx\n", context.rip);
+            }
+            break;
+
+        case Opcode::PUSH:
+            {
+                if (uint64_t* val = context.getGPR(inst.reg1)) {
+                    context.rsp -= 8;
+                    MemoryManager::write64(context.rsp, *val);
+                }
+            }
+            break;
+
+        case Opcode::POP:
+            {
+                if (uint64_t* reg = context.getGPR(inst.reg1)) {
+                    *reg = MemoryManager::read64(context.rsp);
+                    context.rsp += 8;
+                }
+            }
+            break;
+
+        case Opcode::INC:
+            {
+                if (uint64_t* reg = context.getGPR(inst.reg1)) {
+                    uint64_t a = *reg;
+                    *reg = a + 1;
+                    updateFlags64(context, *reg, a, 1, false);
+                }
+            }
+            break;
 
         case Opcode::MOV:
             if (inst.hasImm) {

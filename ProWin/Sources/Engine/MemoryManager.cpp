@@ -42,4 +42,12 @@ void MemoryManager::release(void* address, size_t size) {
     munmap(address, size);
 }
 
+void MemoryManager::write64(uint64_t addr, uint64_t val) {
+    *(uint64_t*)addr = val;
+}
+
+uint64_t MemoryManager::read64(uint64_t addr) {
+    return *(uint64_t*)addr;
+}
+
 }
