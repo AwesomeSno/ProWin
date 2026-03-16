@@ -5,7 +5,18 @@
 #include <unistd.h>
 #include <iostream>
 
+#include <sys/mman.h>
+
 namespace ProWin {
+
+static int peCharsToPosixProt(uint32_t characteristics) {
+    int prot = 0;
+    if (characteristics & IMAGE_SCN_MEM_READ)    prot |= PROT_READ;
+    if (characteristics & IMAGE_SCN_MEM_WRITE)   prot |= PROT_WRITE;
+    if (characteristics & IMAGE_SCN_MEM_EXECUTE) prot |= PROT_EXEC;
+    if (prot == 0) prot = PROT_NONE; // guard pages
+    return prot;
+}
 
 PEImage::PEImage() : m_mappedBase(nullptr), m_imageSize(0), m_entryPoint(0) {}
 
@@ -88,10 +99,24 @@ bool PEImage::load(const std::string& filePath) {
         applyRelocations(delta);
     }
 
-    // 4. Set Final Protections
-    // For the Interpreter, we only need READ access to emulate.
-    // We avoid PROT_EXEC here to bypass macOS security restrictions on RWX memory.
-    MemoryManager::commit(m_mappedBase, m_imageSize, PROT_READ | PROT_WRITE);
+    // 4. Set Final Protections per section
+    // MemoryManager initially commits sections as RW to allow loading and relocations.
+    // Now we apply the actual protections from the PE header.
+    for (const auto& section : info.sections) {
+        if (section.virtualSize == 0) continue;
+        
+        void* sectionAddr = (char*)m_mappedBase + section.virtualAddress;
+        int prot = peCharsToPosixProt(section.characteristics);
+        
+        // Ensure address and size are page-aligned for mprotect?
+        // MemoryManager::reserve/commit usually handles this, but let's be careful.
+        if (mprotect(sectionAddr, section.virtualSize, prot) != 0) {
+            printf("[ProWin] PEImage Warning: mprotect failed for section %s at %p (prot: 0x%x): %s\n", 
+                   section.name.c_str(), sectionAddr, prot, strerror(errno));
+        } else {
+            printf("[PEImage] Section %s -> prot=0x%x\n", section.name.c_str(), prot);
+        }
+    }
 
     m_entryPoint = (uint64_t)((char*)m_mappedBase + info.entryPointRVA);
     m_filePath = filePath;

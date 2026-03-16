@@ -1,9 +1,11 @@
 #include "InstructionDispatcher.h"
 #include <cstdio>
+#include "ALU.h"
 
 namespace ProWin {
 
 bool InstructionDispatcher::execute(const Instruction& inst, CPUContext& context) {
+    bool branchTaken = false;
     switch (inst.opcode) {
         case Opcode::NOP:
             printf("[ProWin] Interpreter: NOP at 0x%llx\n", context.rip);
@@ -12,6 +14,7 @@ bool InstructionDispatcher::execute(const Instruction& inst, CPUContext& context
         case Opcode::RET:
             printf("[ProWin] Interpreter: RET at 0x%llx\n", context.rip);
             // Simplified: Stop execution for now
+            branchTaken = true;
             return false;
 
         case Opcode::MOV:
@@ -24,27 +27,34 @@ bool InstructionDispatcher::execute(const Instruction& inst, CPUContext& context
                 uint64_t* src = context.getGPR(inst.reg2);
                 if (dst && src) *dst = *src;
             }
-            context.rip += inst.length;
             break;
 
         case Opcode::ADD:
             if (inst.hasImm) {
                 if (uint64_t* dst = context.getGPR(inst.reg1)) {
-                    *dst += inst.imm;
+                    uint64_t a = *dst;
+                    uint64_t b = inst.imm;
+                    *dst = a + b;
+                    updateFlags64(context, *dst, a, b, false);
                 }
             } else if (inst.isReg2Reg) {
                 uint64_t* dst = context.getGPR(inst.reg1);
                 uint64_t* src = context.getGPR(inst.reg2);
-                if (dst && src) *dst += *src;
+                if (dst && src) {
+                    uint64_t a = *dst;
+                    uint64_t b = *src;
+                    *dst = a + b;
+                    updateFlags64(context, *dst, a, b, false);
+                }
             }
-            context.rip += inst.length;
             break;
 
         case Opcode::DEC:
             if (uint64_t* reg = context.getGPR(inst.reg1)) {
-                (*reg)--;
+                uint64_t a = *reg;
+                *reg = a - 1;
+                updateFlags64(context, *reg, a, 1, true);
             }
-            context.rip += inst.length;
             break;
 
         case Opcode::STOSD:
@@ -57,30 +67,76 @@ bool InstructionDispatcher::execute(const Instruction& inst, CPUContext& context
                 *ptr = val;
                 context.rdi += 4;
             }
-            context.rip += inst.length;
+            break;
+
+        case Opcode::JZ:
+            {
+                // Reads RFLAGS bit 6 (ZF) — set by ADD, DEC, CMP, etc.
+                bool zf = (context.rflags >> 6) & 1;
+                if (zf == 1) {
+                    context.rip += inst.length + inst.disp;
+                    branchTaken = true;
+                }
+            }
             break;
 
         case Opcode::JNZ:
-            // Simplification: Always check RAX for now? 
-            // Correct: Check Zero Flag (ZF). Since we don't have full flags yet,
-            // let's use RDX (inner loop) and RCX (outer loop) counters from our test.
-            // For the test loop, DEC updates the register. If not zero, jump.
-            // Let's check the register the DEC just touched?
-            // Actually, let's just use the last register indexed in DEC as a hack for now.
-            // In a real engine, we'd check context.rflags.
             {
-                bool zero = (context.rdx == 0 && context.rcx == 0); // Placeholder hack
-                // Let's be slightly better: check whichever reg was DECed.
-                // Our test uses JNZ immediately after DEC.
-                // So let's check the specific registers by convention for now.
-                uint64_t checkVal = (inst.disp < 0) ? context.rdx : 0; 
-                // Wait, our test has two JNZs. One for RDX (inner), one for RCX (outer).
-                // Relative jumps are processed after pos increment.
-                context.rip += inst.length;
-                if (context.rdx != 0 && inst.disp == -6) { // Inner loop back to STOSD
-                    context.rip += inst.disp;
-                } else if (context.rcx != 0 && (inst.disp == -22 || inst.disp == -25)) { // Outer loop back to MOV RDX, 100
-                    context.rip += inst.disp;
+                // Reads RFLAGS bit 6 (ZF) — set by ADD, DEC, CMP, etc.
+                bool zf = (context.rflags >> 6) & 1;
+                if (zf == 0) {
+                    context.rip += inst.length + inst.disp;
+                    branchTaken = true;
+                }
+            }
+            break;
+
+        case Opcode::JL:
+            {
+                // Reads RFLAGS bit 7 (SF) and bit 11 (OF)
+                bool sf = (context.rflags >> 7) & 1;
+                bool of = (context.rflags >> 11) & 1;
+                if (sf != of) {
+                    context.rip += inst.length + inst.disp;
+                    branchTaken = true;
+                }
+            }
+            break;
+
+        case Opcode::JGE:
+            {
+                // Reads RFLAGS bit 7 (SF) and bit 11 (OF)
+                bool sf = (context.rflags >> 7) & 1;
+                bool of = (context.rflags >> 11) & 1;
+                if (sf == of) {
+                    context.rip += inst.length + inst.disp;
+                    branchTaken = true;
+                }
+            }
+            break;
+
+        case Opcode::JLE:
+            {
+                // Reads RFLAGS bits 6 (ZF), 7 (SF), 11 (OF)
+                bool zf = (context.rflags >> 6) & 1;
+                bool sf = (context.rflags >> 7) & 1;
+                bool of = (context.rflags >> 11) & 1;
+                if (zf == 1 || sf != of) {
+                    context.rip += inst.length + inst.disp;
+                    branchTaken = true;
+                }
+            }
+            break;
+
+        case Opcode::JG:
+            {
+                // Reads RFLAGS bits 6 (ZF), 7 (SF), 11 (OF)
+                bool zf = (context.rflags >> 6) & 1;
+                bool sf = (context.rflags >> 7) & 1;
+                bool of = (context.rflags >> 11) & 1;
+                if (zf == 0 && sf == of) {
+                    context.rip += inst.length + inst.disp;
+                    branchTaken = true;
                 }
             }
             break;
@@ -100,8 +156,10 @@ bool InstructionDispatcher::execute(const Instruction& inst, CPUContext& context
     }
 
     fflush(stdout);
-    // Advance RIP
-    context.rip += inst.length;
+    // RIP is advanced ONLY here, never inside case handlers.
+    if (!branchTaken) {
+        context.rip += inst.length;
+    }
     return true;
 }
 

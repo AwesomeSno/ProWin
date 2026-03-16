@@ -129,6 +129,11 @@ typedef struct _IMAGE_BASE_RELOCATION {
 #define IMAGE_REL_BASED_ABSOLUTE 0
 #define IMAGE_REL_BASED_DIR64    10
 
+// Section Characteristics
+#define IMAGE_SCN_MEM_EXECUTE 0x20000000
+#define IMAGE_SCN_MEM_READ    0x40000000
+#define IMAGE_SCN_MEM_WRITE   0x80000000
+
 #pragma pack(pop)
 
 #endif /* PEStructures_h */

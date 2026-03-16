@@ -23,7 +23,12 @@ enum class Opcode {
     NOP,
     STOSD,
     DEC,
-    JNZ
+    JNZ,
+    JZ,
+    JL,
+    JGE,
+    JLE,
+    JG
 };
 
 struct Instruction {

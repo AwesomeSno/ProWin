@@ -8,8 +8,7 @@
 
 namespace ProWin {
 
-EngineOrchestrator::EngineOrchestrator() : m_isRunning(false) {
-    DisplayManager::getInstance().initialize(800, 600);
+EngineOrchestrator::EngineOrchestrator() : m_isRunning(false), m_isLoaded(false) {
 }
 
 EngineOrchestrator::~EngineOrchestrator() {
@@ -21,8 +20,17 @@ EngineOrchestrator& EngineOrchestrator::getInstance() {
     return instance;
 }
 
-void EngineOrchestrator::start(uint64_t entryPoint) {
-    if (m_isRunning) return;
+bool EngineOrchestrator::start(uint64_t entryPoint) {
+    if (m_isRunning) return true;
+    
+    m_errorState.clear();
+    try {
+        DisplayManager::getInstance().initialize(800, 600);
+    } catch (const std::exception& e) {
+        printf("[ProWin] EngineOrchestrator: Initialization failed: %s\n", e.what());
+        m_errorState = e.what();
+        return false;
+    }
     
     // Safety: If there's a finished thread from a previous run, we MUST join it 
     // before assigning a new thread to m_engineThread, otherwise C++ will crash.
@@ -35,6 +43,7 @@ void EngineOrchestrator::start(uint64_t entryPoint) {
     
     m_isRunning = true;
     m_engineThread = std::thread(&EngineOrchestrator::engineLoop, this, entryPoint);
+    return true;
 }
 
 void EngineOrchestrator::stop() {
@@ -74,7 +83,10 @@ void EngineOrchestrator::engineLoop(uint64_t entryPoint) {
 }
 
 void EngineOrchestrator::setupInitialState(uint64_t entryPoint) {
-    m_context.rip = entryPoint;
+    if (!m_isLoaded) {
+        m_context.rip = entryPoint;
+        m_isLoaded = true;
+    }
     // Simulate a basic stack allocation
     m_context.rsp = 0x7FFFFFFF0000;
     

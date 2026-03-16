@@ -84,8 +84,43 @@ Instruction InstructionDecoder::decode(const uint8_t* code) {
             inst.length = pos + 1;
             break;
 
-        case 0x75: // JNZ rel8
+        case 0x74: // JZ/JE rel8
+            inst.opcode = Opcode::JZ;
+            inst.disp = (int8_t)code[pos + 1];
+            inst.hasDisp = true;
+            inst.length = pos + 2;
+            break;
+
+        case 0x75: // JNZ/JNE rel8
             inst.opcode = Opcode::JNZ;
+            inst.disp = (int8_t)code[pos + 1];
+            inst.hasDisp = true;
+            inst.length = pos + 2;
+            break;
+
+        case 0x7C: // JL rel8
+            inst.opcode = Opcode::JL;
+            inst.disp = (int8_t)code[pos + 1];
+            inst.hasDisp = true;
+            inst.length = pos + 2;
+            break;
+
+        case 0x7D: // JGE rel8
+            inst.opcode = Opcode::JGE;
+            inst.disp = (int8_t)code[pos + 1];
+            inst.hasDisp = true;
+            inst.length = pos + 2;
+            break;
+
+        case 0x7E: // JLE rel8
+            inst.opcode = Opcode::JLE;
+            inst.disp = (int8_t)code[pos + 1];
+            inst.hasDisp = true;
+            inst.length = pos + 2;
+            break;
+
+        case 0x7F: // JG rel8
+            inst.opcode = Opcode::JG;
             inst.disp = (int8_t)code[pos + 1];
             inst.hasDisp = true;
             inst.length = pos + 2;

@@ -6,9 +6,12 @@
 @interface EngineBridge : NSObject
 
 + (instancetype)sharedInstance;
-- (void)startEngine:(uint64_t)entryPoint;
+- (BOOL)startEngine:(uint64_t)entryPoint;
 - (void)stopEngine;
 - (BOOL)isEngineRunning;
+- (void)setEntryPoint:(uint64_t)address;
+- (BOOL)isLoaded;
+- (NSString *)getErrorState;
 - (uint64_t)getRegisterRAX;
 - (void*)getVRAMPointer;
 - (int)getDisplayWidth;

@@ -13,10 +13,15 @@
     return instance;
 }
 
-- (void)startEngine:(uint64_t)entryPoint {
+- (BOOL)startEngine:(uint64_t)entryPoint {
     printf("[ProWin] EngineBridge: startEngine called with 0x%llx\n", entryPoint);
     fflush(stdout);
-    ProWin::EngineOrchestrator::getInstance().start(entryPoint);
+    return ProWin::EngineOrchestrator::getInstance().start(entryPoint);
+}
+
+- (NSString *)getErrorState {
+    const char* err = ProWin::EngineOrchestrator::getInstance().getErrorState();
+    return [NSString stringWithUTF8String:err];
 }
 
 - (void)stopEngine {
@@ -25,6 +30,14 @@
 
 - (BOOL)isEngineRunning {
     return ProWin::EngineOrchestrator::getInstance().isRunning();
+}
+
+- (void)setEntryPoint:(uint64_t)address {
+    ProWin::EngineOrchestrator::getInstance().setEntryPoint(address);
+}
+
+- (BOOL)isLoaded {
+    return ProWin::EngineOrchestrator::getInstance().isLoaded();
 }
 
 - (uint64_t)getRegisterRAX {

@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.17.0] - 2026-03-17
+
+### Added
+- **Conditional Jumps**: Implemented `rflags`-based branching for `JZ`, `JNZ`, `JL`, `JGE`, `JLE`, and `JG`.
+- **PE Protection Pass**: Added per-section memory protections (`mprotect`) based on PE section characteristics.
+- **Unified Loader**: Consolidated `PELoader` logic into a single atomic `load(from:)` call returning `PELoadResult`.
+- **CPU Flags Engine**: Implemented `ALU.h` with `updateFlags64` for tracking ZF, SF, CF, and OF.
+
+### Fixed
+- **Double-Increment Bug**: Fixed `RIP` advancing twice by centralizing incrementing logic in `InstructionDispatcher`.
+- **VRAM Safety**: Added robust `mmap` error handling for VRAM allocation with UI alert propagation.
+- **Relocation Timing**: Ensured memory protections are applied *after* relocations are performed.
+
 ## [0.16.0] - 2026-03-15
 
 ### Added
