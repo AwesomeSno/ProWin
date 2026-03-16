@@ -52,6 +52,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = C306B97F2F66C2B900BD493C /* Build configuration list for PBXNativeTarget "ProWin" */;
 			buildPhases = (
+				C306B9822F66D00000BD493C /* Generate Test PE Binary */,
 				C306B9702F66C2B900BD493C /* Sources */,
 				C306B9712F66C2B900BD493C /* Frameworks */,
 				C306B9722F66C2B900BD493C /* Resources */,
@@ -113,6 +114,30 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		C306B9822F66D00000BD493C /* Generate Test PE Binary */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/Scripts/generate_test_pe.py",
+				"$(SRCROOT)/ProWin/Sources/Engine/EngineConstants.h",
+			);
+			name = "Generate Test PE Binary";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(SRCROOT)/ProWin/Resources/test.exe",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/bash;
+			shellScript = "#!/bin/bash\nSCRIPT=\"$SRCROOT/Scripts/generate_test_pe.py\"\nOUTPUT=\"$SRCROOT/ProWin/Resources/test.exe\"\npython3 \"$SCRIPT\" --output \"$OUTPUT\"\nif [ $? -ne 0 ]; then\n  echo \"error: generate_test_pe.py failed — check VRAM constants and script paths\"\n  exit 1\nfi\necho \"note: test.exe regenerated successfully at $OUTPUT\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		C306B9702F66C2B900BD493C /* Sources */ = {
@@ -250,7 +275,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 67;
+				CURRENT_PROJECT_VERSION = 68;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
@@ -260,7 +285,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.23.0;
+				MARKETING_VERSION = 0.24.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.AxeomLabs.ProWin;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -281,7 +306,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 67;
+				CURRENT_PROJECT_VERSION = 68;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
@@ -291,7 +316,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 0.23.0;
+				MARKETING_VERSION = 0.24.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.AxeomLabs.ProWin;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;

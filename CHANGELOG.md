@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.24.0] - 2026-03-17
+
+### Added
+- **Build Automation**: Integrated `generate_test_pe.py` into the Xcode build process via a custom Run Script phase.
+- **Fresh Smoke Tests**: The `test.exe` binary is now automatically regenerated before every compilation, ensuring test bytecode is always in sync with engine constants.
+- **Git Hygiene**: Added `test.exe` to `.gitignore` to prevent generated binaries from polluting the repository.
+
+### Changed
+- Refactored `generate_test_pe.py` to support command-line output path arguments.
+
 ## [0.23.0] - 2026-03-17
 
 ### Added

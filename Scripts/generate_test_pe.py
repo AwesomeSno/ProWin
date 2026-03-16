@@ -144,4 +144,14 @@ def generate_minimal_pe(filename):
         f.write(b'\x00' * 0x200) # .data raw data
 
 if __name__ == '__main__':
-    generate_minimal_pe('/Users/harinandanjv/Documents/ProWIn/test.exe')
+    import argparse
+    parser = argparse.ArgumentParser(description="Generate minimal Windows x64 PE for ProWin testing")
+    parser.add_argument("--output", required=True, help="Output path for the generated test.exe")
+    args = parser.parse_args()
+    
+    try:
+        generate_minimal_pe(args.output)
+        print(f"Successfully generated {args.output}")
+    except Exception as e:
+        print(f"Error generating PE: {e}")
+        exit(1)

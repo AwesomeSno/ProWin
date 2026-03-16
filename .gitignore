@@ -32,4 +32,6 @@ DerivedData
 Icon
 Network Trash Folder
 Temporary Items
-.apdisk
+# Generated Binaries
+test.exe
+ProWin/Resources/test.exe
