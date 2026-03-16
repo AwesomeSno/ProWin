@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.21.0] - 2026-03-17
+
+### Added
+- **Native Frame Sync**: Upgraded synchronization from `CADisplayLink` to `CVDisplayLink` for professional-grade timing on macOS.
+- **Hardware Callback**: Implemented C-style display link callback to handle periodic engine state polling.
+- **Improved UI Reactivity**: Refactored `isRunning` as `@Published` for better integration with SwiftUI views.
+
+### Changed
+- Refactored `GameLoop.swift` to use `CoreVideo` instead of `QuartzCore` for main loop timing.
+
 ## [0.20.0] - 2026-03-17
 
 ### Added

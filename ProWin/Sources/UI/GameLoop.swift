@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 import QuartzCore
+import CoreVideo
 
 /// GameLoop coordinates the execution of the Windows binary with macOS UI/Graphics updates.
 public final class GameLoop: ObservableObject {
@@ -10,10 +11,12 @@ public final class GameLoop: ObservableObject {
     @Published public var errorMessage: String?
     @Published public var showErrorAlert: Bool = false
     @Published public var isLoaded: Bool = false
+    @Published public var isRunning: Bool = false
     
     private var entryPoint: UInt64 = 0
+    private var framesProcessed: UInt64 = 0
     
-    private var displayLink: CADisplayLink?
+    private var displayLink: CVDisplayLink?
     private var engineThread: Thread?
     
     private init() {}
@@ -32,7 +35,7 @@ public final class GameLoop: ObservableObject {
             DispatchQueue.main.async {
                 self.isLoaded = true
                 self.isRunning = true
-                self.setupDisplayLink()
+                self.setupCVDisplayLink()
                 
                 // 3. Start Windows Execution on a background thread
                 self.engineThread = Thread { [weak self] in
@@ -51,22 +54,33 @@ public final class GameLoop: ObservableObject {
     
     public func stop() {
         isRunning = false
-        displayLink?.invalidate()
-        displayLink = nil
+        if let dl = displayLink {
+            CVDisplayLinkStop(dl)
+            displayLink = nil
+        }
     }
     
-    private func setupDisplayLink() {
-        displayLink = CADisplayLink(target: self, selector: #selector(onDisplayUpdate))
-        displayLink?.add(to: .main, forMode: .common)
+    private func setupCVDisplayLink() {
+        CVDisplayLinkCreateWithActiveCGDisplays(&displayLink)
+        
+        guard let dl = displayLink else {
+            print("[ProWin] Error: Could not create CVDisplayLink")
+            return
+        }
+        
+        CVDisplayLinkSetOutputCallback(dl, { _, _, _, _, _, userInfo in
+            let gameLoop = Unmanaged<GameLoop>.fromOpaque(userInfo!).takeUnretainedValue()
+            gameLoop.tick()
+            return kCVReturnSuccess
+        }, Unmanaged.passUnretained(self).toOpaque())
+        
+        CVDisplayLinkStart(dl)
     }
     
-    @objc private func onDisplayUpdate() {
+    private func tick() {
         guard isRunning else { return }
         
-        // Update Graphics
-        GraphicsManager.shared.presentFrame()
-        
-        // Update Input (Bridge native controller state to Engine)
+        // 1. Update Input (Bridge native controller state to Engine)
         if let state = InputManager.shared.getControllerState(index: 0) {
             EngineBridge.sharedInstance().updateInputState(
                 0, 
@@ -78,8 +92,13 @@ public final class GameLoop: ObservableObject {
             )
         }
         
-        // Sync Register State for UI
-        self.rax = EngineBridge.sharedInstance().getRegisterRAX()
+        // 2. Sync State for UI (must be on main thread for @Published)
+        let currentRAX = EngineBridge.sharedInstance().getRegisterRAX()
+        DispatchQueue.main.async {
+            self.rax = currentRAX
+            // 3. Present Graphics (Metal presentation MUST be synced to DisplayLink)
+            GraphicsManager.shared.presentFrame()
+        }
         
         framesProcessed += 1
     }
