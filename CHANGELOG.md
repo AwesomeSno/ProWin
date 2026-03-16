@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.19.0] - 2026-03-17
+
+### Added
+- **x64 Calling Convention**: Redefined stub architecture to use `CPUContext` for argument passing (RCX, RDX, R8, R9).
+- **Return Value Handling**: Stubs now return values in `RAX` via the `CPUContext`.
+- **XInput Support**: Implemented `XInputGetState` with correct memory clearing for `XINPUT_STATE`.
+- **Stub Orchestrator**: Added `StubManager::callStub` for centralized stub execution.
+
+### Changed
+- Refactored `StubFunction` signature to be `Win64Stub` compatible.
+
 ## [0.18.0] - 2026-03-17
 
 ### Added
