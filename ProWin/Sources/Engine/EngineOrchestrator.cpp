@@ -3,6 +3,9 @@
 #include "InstructionDispatcher.h"
 #include "DisplayManager.h"
 #include "EngineConstants.h"
+#include "WinEnvironment.h"
+#include "StubManager.h"
+#include "MemoryManager.h"
 #include <cstdio>
 #include <chrono>
 #include <thread>
@@ -101,14 +104,32 @@ void EngineOrchestrator::setupInitialState(uint64_t entryPoint) {
         m_context.rip = entryPoint;
         m_isLoaded = true;
     }
-    // Simulate a basic stack allocation
-    m_context.rsp = 0x7FFFFFFF0000;
+    
+    // Initialize Win32 stubs
+    extern void initDefaultStubs();
+    initDefaultStubs();
+    
+    // Allocate a real 1MB stack using mmap
+    size_t stackSize = 1024 * 1024; // 1MB
+    void* stackBase = MemoryManager::reserve(0, stackSize);
+    if (stackBase) {
+        MemoryManager::commit(stackBase, stackSize, PROT_READ | PROT_WRITE);
+        // RSP points to the top of the stack (grows downward)
+        m_context.rsp = (uint64_t)stackBase + stackSize - 64; // Leave 64 bytes of headroom
+        // Write a sentinel return address at [RSP] so RET from main stops the engine
+        MemoryManager::write64(m_context.rsp, 0xDEAD000000000000ULL);
+    } else {
+        m_context.rsp = 0x7FFFFFFF0000;
+    }
+    
+    // Initialize Windows environment (TEB/PEB)
+    WinEnvironment::getInstance().initialize(entryPoint & 0xFFFFFFFFFFFF0000ULL);
     
     // Pass VRAM pointer to RDI so the test binary knows where to write
     m_context.rdi = (uint64_t)DisplayManager::getInstance().getVRAM();
     
-    printf("[ProWin] C++ Engine: Initialized RIP to 0x%llx, RDI to 0x%llx\n", 
-           m_context.rip, m_context.rdi);
+    printf("[ProWin] C++ Engine: Initialized RIP=0x%llx RSP=0x%llx RDI=0x%llx\n", 
+           m_context.rip, m_context.rsp, m_context.rdi);
     fflush(stdout);
     updateSnapshot();
 }

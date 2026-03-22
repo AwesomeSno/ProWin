@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2026-03-22
+
+### Added — ISA Completion
+- **50+ x86-64 opcodes**: SUB, CMP, AND, OR, XOR, NOT, NEG, TEST, LEA, JMP, MOVZX, MOVSX, SHL, SHR, SAR, XCHG, CDQ/CQO, IMUL (1/2/3 operand forms), STOSB.
+- **Full conditional jump set**: JA, JB, JAE, JBE, JS, JNS (unsigned/sign branches).
+- **Near-complete rel32 jump support**: All Jcc opcodes now support both rel8 and rel32 (0F 8x) displacements.
+- **REX.R/B register extension**: All ModRM-based opcodes now properly decode extended registers R8–R15.
+- **Shift group (C1/D1)**: SHL, SHR, SAR with immediate operand and shift-by-1 forms.
+- **Two-operand and three-operand IMUL**: Covers all compiler-generated multiply patterns.
+
+### Added — Win32 Subsystem
+- **Heap Emulation** (`HeapManager`): mmap-backed HeapAlloc/HeapFree/VirtualAlloc/VirtualFree.
+- **50+ Win32 API stubs**: kernel32 (GetProcessHeap, HeapAlloc, VirtualAlloc, QueryPerformanceCounter, Sleep, GetCommandLineA, WriteFile, CriticalSection, etc.), user32 (MessageBoxA, CreateWindowExA, PeekMessageA, RegisterClassExA, GetSystemMetrics), gdi32, dxgi, d3d11, xinput (XInputGetState/SetState/GetCapabilities), xaudio2, dsound, ntdll.
+- **TEB/PEB Initialization** (`WinEnvironment`): GS-relative thread environment block with self-pointer, stack limits, PID/TID, and PEB with ImageBase and processor count.
+- **Proper 1MB stack allocation**: mmap'd stack with sentinel return address for clean engine termination.
+- **Stub auto-initialization**: All stubs registered automatically on engine start.
+
+### Added — Audio Pipeline
+- **AVAudioEngine PCM playback**: AudioBridge now accepts raw float PCM data, creates AVAudioPCMBuffers, and queues them on AVAudioPlayerNode.
+
+### Changed
+- Decoder rewritten from scratch for clarity and correctness (~400 lines → ~450 lines, fully structured).
+- Dispatcher rewritten with uniform patterns and removed all verbose printf in hot path.
+- EngineOrchestrator now initializes WinEnvironment, StubManager, and allocates real stack memory.
+
 ## [0.26.0] - 2026-03-17
 
 ### Added

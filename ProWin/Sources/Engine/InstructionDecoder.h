@@ -29,7 +29,30 @@ enum class Opcode {
     JGE,
     JLE,
     JG,
-    INC
+    INC,
+    AND,
+    OR,
+    XOR,
+    NOT,
+    NEG,
+    TEST,
+    MOVZX,
+    MOVSX,
+    SHL,
+    SHR,
+    SAR,
+    XCHG,
+    CDQ,
+    IMUL,
+    STOSB,
+    MOVSB,
+    MOVSD,
+    JA,
+    JB,
+    JAE,
+    JBE,
+    JS,
+    JNS
 };
 
 struct Instruction {
